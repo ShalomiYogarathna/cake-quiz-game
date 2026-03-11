@@ -4,11 +4,15 @@ function Quiz() {
   const [score, setScore] = useState(0);
   const [bananaQuestion, setBananaQuestion] = useState(null);
 
-  useEffect(() => {
+  const loadBananaQuestion = () => {
     fetch("http://127.0.0.1:8000/banana")
       .then((response) => response.json())
       .then((data) => setBananaQuestion(data))
       .catch((error) => console.error("Error loading Banana question:", error));
+  };
+
+  useEffect(() => {
+    loadBananaQuestion();
   }, []);
 
   const handleCorrectAnswer = () => {
@@ -32,8 +36,12 @@ function Quiz() {
             alt="Banana quiz question"
             width="300"
           />
+          <br /><br />
+          <button onClick={loadBananaQuestion}>Load New Banana Question</button>
         </div>
       )}
+
+      <br />
 
       <p>Question: Which ingredient helps cakes rise?</p>
 
