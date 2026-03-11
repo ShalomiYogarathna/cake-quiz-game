@@ -2,61 +2,60 @@ import { useEffect, useState } from "react";
 
 function Quiz() {
   const [score, setScore] = useState(0);
-  const [bananaQuestion, setBananaQuestion] = useState(null);
-
-  const loadBananaQuestion = () => {
-    fetch("http://127.0.0.1:8000/banana")
-      .then((response) => response.json())
-      .then((data) => setBananaQuestion(data))
-      .catch((error) => console.error("Error loading Banana question:", error));
-  };
+  const [cakeQuestion, setCakeQuestion] = useState(null);
 
   useEffect(() => {
-    loadBananaQuestion();
+    fetch("http://127.0.0.1:8000/cake-question")
+      .then((response) => response.json())
+      .then((data) => setCakeQuestion(data))
+      .catch((error) => console.error("Error loading cake question:", error));
   }, []);
 
-  const handleCorrectAnswer = () => {
-    setScore(1);
-    alert("Correct answer!");
-  };
-
-  const handleWrongAnswer = () => {
-    alert("Wrong answer!");
+  const handleAnswerClick = (isCorrect) => {
+    if (isCorrect) {
+      setScore(1);
+      alert("Correct answer!");
+    } else {
+      alert("Wrong answer!");
+    }
   };
 
   return (
     <div>
       <h1>Cake Quiz</h1>
 
-      {bananaQuestion && (
+      {cakeQuestion && (
         <div>
-          <p>Banana API Question:</p>
-          <img
-            src={bananaQuestion.question}
-            alt="Banana quiz question"
-            width="300"
-          />
-          <br /><br />
-          <button onClick={loadBananaQuestion}>Load New Banana Question</button>
+          <p>{cakeQuestion.question}</p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, 200px)",
+              gap: "20px",
+              marginTop: "20px",
+            }}
+          >
+            {cakeQuestion.answers.map((answer) => (
+              <img
+                key={answer.id}
+                src={answer.image}
+                alt="Cake answer option"
+                width="200"
+                height="200"
+                style={{
+                  objectFit: "cover",
+                  cursor: "pointer",
+                  borderRadius: "10px",
+                }}
+                onClick={() => handleAnswerClick(answer.correct)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
       <br />
-
-      <p>Question: Which ingredient helps cakes rise?</p>
-
-      <button onClick={handleCorrectAnswer}>Baking Powder</button>
-      <br /><br />
-
-      <button onClick={handleWrongAnswer}>Sugar</button>
-      <br /><br />
-
-      <button onClick={handleWrongAnswer}>Butter</button>
-      <br /><br />
-
-      <button onClick={handleWrongAnswer}>Chocolate</button>
-
-      <br /><br />
 
       <p>Score: {score}</p>
     </div>
