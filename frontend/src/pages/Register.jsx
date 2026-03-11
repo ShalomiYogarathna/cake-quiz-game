@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -13,12 +14,13 @@ function Register() {
     console.log("Email:", email);
     console.log("Password:", password);
 
-    alert("Register button clicked");
+    navigate("/");
   };
 
   return (
     <div>
       <h1>Register Page</h1>
+      <p>Create your account, then continue to login.</p>
 
       <form onSubmit={handleRegister}>
         <div>
