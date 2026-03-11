@@ -51,3 +51,32 @@ def get_cake_question():
         ]
     }
 
+@app.get("/cake-question-2")
+def get_cake_question_2():
+    return {
+        "question": "Which image shows cupcakes?",
+        "answers": [
+            {
+                "id": 1,
+                "image": "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=300&q=80",
+                "correct": True
+            },
+            {
+                "id": 2,
+                "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80",
+                "correct": False
+            },
+            {
+                "id": 3,
+                "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80",
+                "correct": False
+            },
+            {
+                "id": 4,
+                "image": "https://images.unsplash.com/photo-1521302200778-33500795e128?auto=format&fit=crop&w=300&q=80",
+                "correct": False
+            }
+        ]
+    }
+
+

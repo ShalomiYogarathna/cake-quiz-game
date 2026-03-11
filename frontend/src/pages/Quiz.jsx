@@ -3,20 +3,33 @@ import { useEffect, useState } from "react";
 function Quiz() {
   const [score, setScore] = useState(0);
   const [cakeQuestion, setCakeQuestion] = useState(null);
+  const [questionNumber, setQuestionNumber] = useState(1);
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/cake-question")
+  const loadQuestion = (number) => {
+    fetch(`http://127.0.0.1:8000/cake-question${number === 1 ? "" : "-2"}`)
       .then((response) => response.json())
       .then((data) => setCakeQuestion(data))
       .catch((error) => console.error("Error loading cake question:", error));
-  }, []);
+  };
+
+  useEffect(() => {
+    loadQuestion(questionNumber);
+  }, [questionNumber]);
 
   const handleAnswerClick = (isCorrect) => {
     if (isCorrect) {
-      setScore(1);
+      setScore((prevScore) => prevScore + 1);
       alert("Correct answer!");
     } else {
       alert("Wrong answer!");
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (questionNumber === 1) {
+      setQuestionNumber(2);
+    } else {
+      alert("No more questions yet.");
     }
   };
 
@@ -56,6 +69,8 @@ function Quiz() {
       )}
 
       <br />
+
+      <button onClick={handleNextQuestion}>Next Question</button>
 
       <p>Score: {score}</p>
     </div>
