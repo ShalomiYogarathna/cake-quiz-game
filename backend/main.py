@@ -35,17 +35,17 @@ def get_cake_question():
             },
             {
                 "id": 2,
-                "image": "https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&w=300&q=80",
+                "image": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=300&q=80",
                 "correct": False
             },
             {
                 "id": 3,
-                "image": "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=300&q=80",
+                "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=300&q=80",
                 "correct": False
             },
             {
                 "id": 4,
-                "image": "https://images.unsplash.com/photo-1464306076886-da185f6a9d05?auto=format&fit=crop&w=300&q=80",
+                "image": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=300&q=80",
                 "correct": False
             }
         ]
@@ -63,20 +63,18 @@ def get_cake_question_2():
             },
             {
                 "id": 2,
-                "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80",
+                "image": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=300&q=80",
                 "correct": False
             },
             {
                 "id": 3,
-                "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=80",
+                "image": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=300&q=80",
                 "correct": False
             },
             {
                 "id": 4,
-                "image": "https://images.unsplash.com/photo-1521302200778-33500795e128?auto=format&fit=crop&w=300&q=80",
+                "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80",
                 "correct": False
             }
         ]
     }
-
-
