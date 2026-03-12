@@ -37,61 +37,105 @@ function Register() {
   };
 
   return (
-    <div>
-      <h1>Register Page</h1>
-      <p>Create an account to play the Cake Shop Banana Challenge.</p>
+    <div className="auth-shell auth-shell-centered">
+      <div className="auth-sparkle auth-sparkle-a" />
+      <div className="auth-sparkle auth-sparkle-b" />
+      <div className="auth-sparkle auth-sparkle-c" />
+      <div className="dessert-corner dessert-left">
+        <div className="dessert-cupcake">
+          <span className="dessert-cherry" />
+        </div>
+      </div>
+      <div className="dessert-corner dessert-right">
+        <div className="dessert-donut" />
+      </div>
 
-      <form onSubmit={handleRegister}>
-        <div>
-          <label>Username</label>
-          <br />
-          <input
-            type="text"
-            placeholder="Enter username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+      <main className="auth-stage">
+        <div className="auth-top-image-wrap">
+          <img
+            className="auth-top-image"
+            src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80"
+            alt="Pink cake decoration"
           />
         </div>
-
-        <br />
-
-        <div>
-          <label>Email</label>
-          <br />
-          <input
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+        <div className="auth-banner-wrap">
+          <div className="auth-banner-ribbon auth-banner-ribbon-left" />
+          <div className="auth-banner">
+            <div className="auth-banner-cake" />
+            <span>CAKE SHOP CHALLENGE</span>
+          </div>
+          <div className="auth-banner-ribbon auth-banner-ribbon-right" />
         </div>
 
-        <br />
+        <section className="auth-main-card">
+          <p className="auth-welcome">Join the</p>
+          <h1 className="auth-title auth-title-main">
+            Cake Shop
+            <br />
+            Challenge
+          </h1>
+          <p className="auth-subtitle auth-subtitle-main">
+            Create your sweet player profile, then come back to complete bakery
+            rounds in your own pink cake world.
+          </p>
 
-        <div>
-          <label>Password</label>
-          <br />
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+          <ul className="auth-check-list">
+            <li>Create your player profile for the Cake Shop Challenge</li>
+            <li>Move through sweet bakery rounds and playful quiz moments</li>
+            <li>Stay in one connected game flow from sign up to final result</li>
+          </ul>
 
-        <br />
+          <section className="auth-panel auth-panel-inline">
+            <div className="auth-form-card auth-form-card-centered">
+              <h2>Sign Up</h2>
+              <p>Create an account to play the Cake Shop Challenge</p>
 
-        <button type="submit">Register</button>
-      </form>
+              <form className="auth-form" onSubmit={handleRegister}>
+                <div className="auth-field">
+                  <label>Username</label>
+                  <input
+                    type="text"
+                    placeholder="Enter username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </div>
 
-      {error ? <p>{error}</p> : null}
-      {success ? <p>{success}</p> : null}
+                <div className="auth-field">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    placeholder="Enter email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
 
-      <br />
+                <div className="auth-field">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
 
-      <p>
-        Already have an account? <Link to="/">Login here</Link>
-      </p>
+                <button className="auth-submit" type="submit">
+                  Sign Up
+                </button>
+              </form>
+
+              {error ? <p className="auth-error">{error}</p> : null}
+              {success ? <p className="auth-success">{success}</p> : null}
+
+              <p className="auth-footer">
+                Already have an account? <Link to="/">Log In</Link>
+              </p>
+            </div>
+          </section>
+        </section>
+      </main>
     </div>
   );
 }

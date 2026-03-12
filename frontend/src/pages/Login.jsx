@@ -35,47 +35,98 @@ function Login() {
   };
 
   return (
-    <div>
-      <h1>Login Page</h1>
-      <p>Log in to start the Cake Shop Banana Challenge.</p>
+    <div className="auth-shell auth-shell-centered">
+      <div className="auth-sparkle auth-sparkle-a" />
+      <div className="auth-sparkle auth-sparkle-b" />
+      <div className="auth-sparkle auth-sparkle-c" />
+      <div className="dessert-corner dessert-left">
+        <div className="dessert-cupcake">
+          <span className="dessert-cherry" />
+        </div>
+      </div>
+      <div className="dessert-corner dessert-right">
+        <div className="dessert-donut" />
+      </div>
 
-      <form onSubmit={handleLogin}>
-        <div>
-          <label>Email</label>
-          <br />
-          <input
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+      <main className="auth-stage">
+        <div className="auth-top-image-wrap">
+          <img
+            className="auth-top-image"
+            src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80"
+            alt="Pink cake decoration"
           />
         </div>
-
-        <br />
-
-        <div>
-          <label>Password</label>
-          <br />
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <div className="auth-banner-wrap">
+          <div className="auth-banner-ribbon auth-banner-ribbon-left" />
+          <div className="auth-banner">
+            <div className="auth-banner-cake" />
+            <span>CAKE SHOP CHALLENGE</span>
+          </div>
+          <div className="auth-banner-ribbon auth-banner-ribbon-right" />
         </div>
 
-        <br />
+        <section className="auth-main-card">
+          <div className="auth-content-grid">
+            <div className="auth-copy-side">
+              <p className="auth-welcome">Welcome to the</p>
+              <h1 className="auth-title auth-title-main">
+                Cake Shop
+                <br />
+                Challenge
+              </h1>
+              <p className="auth-subtitle auth-subtitle-main">
+                Sign in to enter a sweet little cake world filled with bakery
+                rounds, playful challenges, and a final score screen.
+              </p>
 
-        <button type="submit">Login</button>
-      </form>
+              <ul className="auth-check-list">
+                <li>Unlock the next cake order by clearing each challenge</li>
+                <li>Enjoy bakery-themed rounds with cute image choices</li>
+                <li>Your progress and score stay linked to your player login</li>
+              </ul>
+            </div>
 
-      {error ? <p>{error}</p> : null}
+            <section className="auth-panel auth-panel-inline auth-panel-right">
+              <div className="auth-form-card auth-form-card-right">
+              <h2>Log In</h2>
+              <p>Log in to start the Cake Shop Challenge</p>
 
-      <br />
+              <form className="auth-form" onSubmit={handleLogin}>
+                <div className="auth-field">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    placeholder="Enter email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
 
-      <p>
-        Don&apos;t have an account? <Link to="/register">Register here</Link>
-      </p>
+                <div className="auth-field">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+
+                <button className="auth-submit" type="submit">
+                  Log In
+                </button>
+              </form>
+
+              {error ? <p className="auth-error">{error}</p> : null}
+
+              <p className="auth-footer">
+                Don&apos;t have an account? <Link to="/register">Sign Up</Link>
+              </p>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
