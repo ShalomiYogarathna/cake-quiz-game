@@ -4,21 +4,40 @@ import { Link, useNavigate } from "react-router-dom";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
-    console.log("Email:", email);
-    console.log("Password:", password);
+    try {
+      const response = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    navigate("/quiz");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Login failed");
+      }
+
+      localStorage.setItem("cake_quiz_token", data.token);
+      localStorage.setItem("cake_quiz_username", data.username);
+      navigate("/quiz");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
     <div>
       <h1>Login Page</h1>
-      <p>Log in to start the cake quiz.</p>
+      <p>Log in to start the Cake Shop Banana Challenge.</p>
 
       <form onSubmit={handleLogin}>
         <div>
@@ -49,6 +68,8 @@ function Login() {
 
         <button type="submit">Login</button>
       </form>
+
+      {error ? <p>{error}</p> : null}
 
       <br />
 

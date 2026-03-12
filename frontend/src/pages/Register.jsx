@@ -5,22 +5,41 @@ function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
-    console.log("Username:", username);
-    console.log("Email:", email);
-    console.log("Password:", password);
+    try {
+      const response = await fetch("http://127.0.0.1:8000/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email, password }),
+      });
 
-    navigate("/");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Registration failed");
+      }
+
+      setSuccess("Registration complete. Continue to login.");
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
     <div>
       <h1>Register Page</h1>
-      <p>Create your account, then continue to login.</p>
+      <p>Create an account to play the Cake Shop Banana Challenge.</p>
 
       <form onSubmit={handleRegister}>
         <div>
@@ -64,6 +83,9 @@ function Register() {
 
         <button type="submit">Register</button>
       </form>
+
+      {error ? <p>{error}</p> : null}
+      {success ? <p>{success}</p> : null}
 
       <br />
 

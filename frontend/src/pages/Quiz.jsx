@@ -3,26 +3,78 @@ import { useNavigate } from "react-router-dom";
 
 function Quiz() {
   const [score, setScore] = useState(0);
+  const [roundNumber, setRoundNumber] = useState(1);
+  const [bananaQuestion, setBananaQuestion] = useState(null);
+  const [bananaAnswer, setBananaAnswer] = useState("");
   const [cakeQuestion, setCakeQuestion] = useState(null);
-  const [questionNumber, setQuestionNumber] = useState(1);
   const [selectedAnswerId, setSelectedAnswerId] = useState(null);
+  const [feedback, setFeedback] = useState("");
   const navigate = useNavigate();
+  const token = localStorage.getItem("cake_quiz_token");
+  const username = localStorage.getItem("cake_quiz_username");
 
-  const loadQuestion = (number) => {
-    fetch(`http://127.0.0.1:8000/cake-question${number === 1 ? "" : "-2"}`)
+  useEffect(() => {
+    if (!token) {
+      navigate("/");
+    }
+  }, [navigate, token]);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    if (roundNumber === 1) {
+      fetch("http://127.0.0.1:8000/banana", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setBananaQuestion(data);
+          setBananaAnswer("");
+          setFeedback("");
+        })
+        .catch((error) => console.error("Error loading Banana round:", error));
+      return;
+    }
+
+    fetch("http://127.0.0.1:8000/cake-question/random", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setCakeQuestion(data);
         setSelectedAnswerId(null);
+        setFeedback("");
       })
-      .catch((error) => console.error("Error loading cake question:", error));
+      .catch((error) => console.error("Error loading cake round:", error));
+  }, [roundNumber, token]);
+
+  const handleBananaSubmit = () => {
+    if (!bananaQuestion) {
+      return;
+    }
+
+    if (bananaAnswer.trim() === "") {
+      setFeedback("Enter an answer first.");
+      return;
+    }
+
+    const parsedAnswer = Number.parseInt(bananaAnswer, 10);
+
+    if (parsedAnswer === bananaQuestion.solution) {
+      setScore((prevScore) => prevScore + 1);
+      setFeedback("Correct answer!");
+    } else {
+      setFeedback(`Wrong answer. The correct answer is ${bananaQuestion.solution}.`);
+    }
   };
 
-  useEffect(() => {
-    loadQuestion(questionNumber);
-  }, [questionNumber]);
-
-  const handleAnswerClick = (answer) => {
+  const handleCakeAnswerClick = (answer) => {
     if (selectedAnswerId !== null) {
       return;
     }
@@ -31,39 +83,68 @@ function Quiz() {
 
     if (answer.correct) {
       setScore((prevScore) => prevScore + 1);
-      alert("Correct answer!");
+      setFeedback("Correct answer!");
     } else {
-      alert("Wrong answer!");
+      setFeedback("Wrong answer!");
     }
   };
 
-  const handleNextQuestion = () => {
-    if (selectedAnswerId === null) {
-      alert("Please choose an answer first.");
+  const handleNextRound = () => {
+    if (roundNumber === 1) {
+      if (!feedback) {
+        setFeedback("Submit your Banana answer first.");
+        return;
+      }
+
+      setRoundNumber(2);
       return;
     }
 
-    if (questionNumber === 1) {
-      setQuestionNumber(2);
-    } else {
-      navigate("/result", {
-        state: {
-          score,
-          totalQuestions: 2,
-        },
-      });
+    if (selectedAnswerId === null) {
+      setFeedback("Choose an image answer first.");
+      return;
     }
+
+    navigate("/result", {
+      state: {
+        score,
+        totalQuestions: 2,
+        username,
+      },
+    });
   };
 
   return (
     <div>
-      <h1>Cake Quiz</h1>
-      <p>Question {questionNumber} of 2</p>
+      <h1>Cake Shop Banana Challenge</h1>
+      <p>Player: {username || "Guest"}</p>
+      <p>Round {roundNumber} of 2</p>
 
-      {cakeQuestion && (
+      {roundNumber === 1 && bananaQuestion ? (
+        <div>
+          <p>Solve the Banana API puzzle to unlock the next cake order.</p>
+          <img
+            src={bananaQuestion.question}
+            alt="Banana API puzzle"
+            width="320"
+          />
+          <br />
+          <br />
+          <input
+            type="number"
+            placeholder="Enter numeric answer"
+            value={bananaAnswer}
+            onChange={(e) => setBananaAnswer(e.target.value)}
+          />
+          <button type="button" onClick={handleBananaSubmit}>
+            Submit Banana Answer
+          </button>
+        </div>
+      ) : null}
+
+      {roundNumber === 2 && cakeQuestion ? (
         <div>
           <p>{cakeQuestion.question}</p>
-
           <div
             style={{
               display: "grid",
@@ -88,17 +169,17 @@ function Quiz() {
                       ? "4px solid #2f855a"
                       : "2px solid transparent",
                 }}
-                onClick={() => handleAnswerClick(answer)}
+                onClick={() => handleCakeAnswerClick(answer)}
               />
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
-      <br />
+      {feedback ? <p>{feedback}</p> : null}
 
-      <button onClick={handleNextQuestion}>
-        {questionNumber === 2 ? "Finish Quiz" : "Next Question"}
+      <button type="button" onClick={handleNextRound}>
+        {roundNumber === 1 ? "Go To Cake Round" : "Finish Quiz"}
       </button>
 
       <p>Score: {score}</p>
