@@ -25,6 +25,26 @@ def create_users_table():
     conn.commit()
     conn.close()
 
+def create_scores_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            score INTEGER NOT NULL,
+            total_questions INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
 def create_user(username, email, password):
     conn = get_connection()
     cursor = conn.cursor()
@@ -58,3 +78,36 @@ def get_user_by_email(email):
     conn.close()
     return user
 
+def save_score(user_id, score, total_questions):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO scores (user_id, score, total_questions)
+        VALUES (?, ?, ?)
+        """,
+        (user_id, score, total_questions),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_scores_by_user(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT id, score, total_questions, created_at
+        FROM scores
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        """,
+        (user_id,),
+    )
+
+    scores = cursor.fetchall()
+    conn.close()
+    return scores

@@ -8,10 +8,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from fastapi import Request
-from database import create_users_table, create_user, get_user_by_email
+from database import (
+    create_scores_table,
+    create_user,
+    create_users_table,
+    get_scores_by_user,
+    get_user_by_email,
+    save_score,
+)
 
 app = FastAPI()
 create_users_table()
+create_scores_table()
+
 
 
 app.add_middleware(
@@ -38,6 +47,9 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+class ScoreRequest(BaseModel):
+    score: int
+    total_questions: int
 
 USERS = {}
 TOKENS = {}
@@ -215,6 +227,32 @@ def get_session_user(request: Request):
         "username": user[1],
         "email": user[2],
     }
+
+@app.post("/scores")
+def create_score(
+    payload: ScoreRequest,
+    authorization: Optional[str] = Header(default=None),
+):
+    user = get_current_user(authorization)
+
+    save_score(user["id"], payload.score, payload.total_questions)
+
+    return {"message": "Score saved successfully"}
+
+@app.get("/scores")
+def read_scores(authorization: Optional[str] = Header(default=None)):
+    user = get_current_user(authorization)
+    scores = get_scores_by_user(user["id"])
+
+    return [
+        {
+            "id": score[0],
+            "score": score[1],
+            "total_questions": score[2],
+            "created_at": score[3],
+        }
+        for score in scores
+    ]
 
 @app.post("/logout")
 def logout_user(request: Request):
