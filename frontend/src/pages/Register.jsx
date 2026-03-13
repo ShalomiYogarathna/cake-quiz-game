@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -68,25 +68,28 @@ function Register() {
         </div>
 
         <section className="auth-main-card">
-          <p className="auth-welcome">Join the</p>
-          <h1 className="auth-title auth-title-main">
-            Cake Shop
-            <br />
-            Challenge
-          </h1>
-          <p className="auth-subtitle auth-subtitle-main">
-            Create your sweet player profile, then come back to complete bakery
-            rounds in your own pink cake world.
-          </p>
+          <div className="auth-content-grid">
+            <div className="auth-copy-side">
+              <p className="auth-welcome">Join the</p>
+              <h1 className="auth-title auth-title-main">
+                Cake Shop
+                <br />
+                Challenge
+              </h1>
+              <p className="auth-subtitle auth-subtitle-main">
+                Create your sweet player profile, then come back to complete bakery
+                rounds in your own pink cake world.
+              </p>
 
-          <ul className="auth-check-list">
-            <li>Create your player profile for the Cake Shop Challenge</li>
-            <li>Move through sweet bakery rounds and playful quiz moments</li>
-            <li>Stay in one connected game flow from sign up to final result</li>
-          </ul>
+              <ul className="auth-check-list">
+                <li>Create your player profile for the Cake Shop Challenge</li>
+                <li>Move through sweet bakery rounds and playful quiz moments</li>
+                <li>Stay in one connected game flow from sign up to final result</li>
+              </ul>
+            </div>
 
-          <section className="auth-panel auth-panel-inline">
-            <div className="auth-form-card auth-form-card-centered">
+            <section className="auth-panel auth-panel-inline auth-panel-right">
+              <div className="auth-form-card auth-form-card-right">
               <h2>Sign Up</h2>
               <p>Create an account to play the Cake Shop Challenge</p>
 
@@ -132,8 +135,9 @@ function Register() {
               <p className="auth-footer">
                 Already have an account? <Link to="/login">Log In</Link>
               </p>
-            </div>
-          </section>
+              </div>
+            </section>
+          </div>
         </section>
       </main>
     </div>
