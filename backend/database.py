@@ -45,6 +45,25 @@ def create_scores_table():
     conn.commit()
     conn.close()
 
+
+def create_tokens_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tokens (
+            token TEXT PRIMARY KEY,
+            email TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
+
 def create_user(username, email, password):
     conn = get_connection()
     cursor = conn.cursor()
@@ -77,6 +96,60 @@ def get_user_by_email(email):
     user = cursor.fetchone()
     conn.close()
     return user
+
+def save_token(token, email):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO tokens (token, email)
+        VALUES (?, ?)
+        """,
+        (token, email),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_email_by_token(token):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT email
+        FROM tokens
+        WHERE token = ?
+        """,
+        (token,),
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    return row[0]
+
+
+def delete_token(token):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM tokens
+        WHERE token = ?
+        """,
+        (token,),
+    )
+
+    conn.commit()
+    conn.close()
+
 
 def save_score(user_id, score, total_questions):
     conn = get_connection()

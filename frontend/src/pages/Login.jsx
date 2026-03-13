@@ -1,12 +1,21 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
 
+useEffect(() => {
+  if (location.state?.authMessage) {
+    setError(location.state.authMessage);
+  }
+}, [location.state]);
+
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function Result() {
@@ -9,6 +9,7 @@ function Result() {
   const username = location.state?.username ?? "Player";
   const token = localStorage.getItem("cake_quiz_token");
   const hasSavedScore = useRef(false);
+  const [numberFact, setNumberFact] = useState("");
 
 useEffect(() => {
   if (!token) {
@@ -34,21 +35,82 @@ useEffect(() => {
   }).catch((error) => console.error("Error saving score:", error));
 }, [score, token, totalQuestions]);
 
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    fetch(`http://localhost:8000/number-fact/${score}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => setNumberFact(data.text || ""))
+      .catch((error) => console.error("Error loading number fact:", error));
+  }, [score, token]);
+
   const handlePlayAgain = () => {
     navigate("/quiz");
   };
 
   return (
-    <div>
-      <h1>Quiz Result</h1>
-      <p>{username}, your cake shop challenge is complete.</p>
-      <p>
-        You scored {score} out of {totalQuestions}.
-      </p>
-      <button onClick={handlePlayAgain}>Play Again</button>
-      <p>
-        Back to <Link to="/">Login</Link>
-      </p>
+    <div className="result-shell">
+      <div className="result-deco result-deco-strawberry">🍓</div>
+      <div className="result-deco result-deco-donut">🍩</div>
+      <div className="result-deco result-deco-cupcake">🧁</div>
+      <div className="result-mascot" aria-hidden="true">
+        👩‍🍳
+      </div>
+
+      <div className="result-stage">
+        <div className="result-topper">
+          <div className="result-topper-cake" />
+          <div className="result-topper-banner">
+            <span className="result-topper-ribbon result-topper-ribbon-left" />
+            <div className="result-topper-label">SWEET RESULT</div>
+            <span className="result-topper-ribbon result-topper-ribbon-right" />
+          </div>
+        </div>
+
+        <div className="result-card">
+          <p className="result-kicker">🎉 Challenge Complete</p>
+          <h1 className="result-title">Quiz Result</h1>
+          <p className="result-subtitle">
+            {username}, your cake shop challenge is complete.
+          </p>
+
+          <div className="result-score-bubble">
+            <span className="result-score-label">Final Score</span>
+            <span className="result-score-value">
+              {score} / {totalQuestions}
+            </span>
+          </div>
+
+          <div className="result-message-card">
+            <p className="result-message-title">Sweet work, baker!</p>
+            <p className="result-message-text">
+              You finished the challenge and saved your score to your player profile.
+            </p>
+            {numberFact ? (
+              <p className="result-message-fact">🍬 Sweet number fact: {numberFact}</p>
+            ) : null}
+          </div>
+
+          <div className="result-actions">
+            <button
+              type="button"
+              onClick={handlePlayAgain}
+              className="result-primary-button"
+            >
+              🍰 Play Again
+            </button>
+            <Link to="/" className="result-link-button">
+              Back to Login
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

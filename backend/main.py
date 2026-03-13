@@ -10,18 +10,21 @@ from pydantic import BaseModel
 from fastapi import Request
 from database import (
     create_scores_table,
+    create_tokens_table,
     create_user,
     create_users_table,
+    delete_token,
+    get_email_by_token,
     get_scores_by_user,
     get_user_by_email,
     save_score,
+    save_token,
 )
 
 app = FastAPI()
 create_users_table()
 create_scores_table()
-
-
+create_tokens_table()
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,83 +57,8 @@ class ScoreRequest(BaseModel):
 USERS = {}
 TOKENS = {}
 
-CAKE_QUESTIONS = [
-    {
-        "question": "Which image shows a chocolate cake?",
-        "answers": [
-            {
-                "id": 1,
-                "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80",
-                "correct": True,
-            },
-            {
-                "id": 2,
-                "image": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-            {
-                "id": 3,
-                "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-            {
-                "id": 4,
-                "image": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-        ],
-    },
-    {
-        "question": "Which image shows cupcakes?",
-        "answers": [
-            {
-                "id": 1,
-                "image": "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=300&q=80",
-                "correct": True,
-            },
-            {
-                "id": 2,
-                "image": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-            {
-                "id": 3,
-                "image": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-            {
-                "id": 4,
-                "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-        ],
-    },
-    {
-        "question": "Which image shows macarons?",
-        "answers": [
-            {
-                "id": 1,
-                "image": "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&w=300&q=80",
-                "correct": True,
-            },
-            {
-                "id": 2,
-                "image": "https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-            {
-                "id": 3,
-                "image": "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-            {
-                "id": 4,
-                "image": "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=300&q=80",
-                "correct": False,
-            },
-        ],
-    },
-]
+MEALDB_DESSERTS_URL = "https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert"
+NUMBERS_API_URL = "http://numbersapi.com/{number}?json"
 
 
 def get_current_user(authorization: Optional[str]):
@@ -138,7 +66,8 @@ def get_current_user(authorization: Optional[str]):
         raise HTTPException(status_code=401, detail="Missing token")
 
     token = authorization.replace("Bearer ", "", 1)
-    email = TOKENS.get(token)
+    email = TOKENS.get(token) or get_email_by_token(token)
+
 
     if not email:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -181,7 +110,9 @@ def login_user(payload: LoginRequest, request: Request):
 
     token = secrets.token_hex(16)
     TOKENS[token] = payload.email
+    save_token(token, payload.email)
     request.session["user_email"] = payload.email
+
 
     return {
         "token": token,
@@ -206,10 +137,37 @@ def get_banana_question(authorization: Optional[str] = Header(default=None)):
     return response.json()
 
 
-@app.get("/cake-question/random")
-def get_random_cake_question(authorization: Optional[str] = Header(default=None)):
+@app.get("/dessert-question/random")
+def get_random_dessert_question(authorization: Optional[str] = Header(default=None)):
     get_current_user(authorization)
-    return random.choice(CAKE_QUESTIONS)
+
+    response = requests.get(MEALDB_DESSERTS_URL, timeout=10)
+    response.raise_for_status()
+    meals = response.json().get("meals") or []
+
+    if len(meals) < 4:
+        raise HTTPException(status_code=502, detail="Not enough dessert options available")
+
+    selected_meals = random.sample(meals, 4)
+    correct_meal = random.choice(selected_meals)
+
+    answers = [
+        {
+            "id": meal["idMeal"],
+            "image": meal["strMealThumb"],
+            "label": meal["strMeal"],
+            "correct": meal["idMeal"] == correct_meal["idMeal"],
+        }
+        for meal in selected_meals
+    ]
+
+    random.shuffle(answers)
+
+    return {
+        "question": f"Which dessert image matches {correct_meal['strMeal']}?",
+        "answers": answers,
+        "source": "TheMealDB",
+    }
 
 @app.get("/session-user")
 def get_session_user(request: Request):
@@ -254,8 +212,34 @@ def read_scores(authorization: Optional[str] = Header(default=None)):
         for score in scores
     ]
 
+
+@app.get("/number-fact/{number}")
+def get_number_fact(number: int, authorization: Optional[str] = Header(default=None)):
+    get_current_user(authorization)
+
+    try:
+        response = requests.get(NUMBERS_API_URL.format(number=number), timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return {
+            "number": data.get("number", number),
+            "text": data.get("text", f"{number} is your sweet challenge score."),
+        }
+    except requests.RequestException:
+        return {
+            "number": number,
+            "text": f"{number} is your sweet challenge score.",
+        }
+
 @app.post("/logout")
-def logout_user(request: Request):
+def logout_user(
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+):
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.replace("Bearer ", "", 1)
+        TOKENS.pop(token, None)
+        delete_token(token)
+
     request.session.clear()
     return {"message": "Logged out successfully"}
-
