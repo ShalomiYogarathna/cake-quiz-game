@@ -373,6 +373,12 @@ input {
   color: var(--brown-900);
 }
 
+.auth-field-help {
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .auth-input-wrap {
   position: relative;
 }

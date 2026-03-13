@@ -1,6 +1,19 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+const PASSWORD_RULE_TEXT =
+  "Use 8+ characters with uppercase, lowercase, number, and special character.";
+
+function isStrongPassword(password) {
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+}
+
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -13,6 +26,11 @@ function Register() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!isStrongPassword(password)) {
+      setError(PASSWORD_RULE_TEXT);
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:8000/register", {
@@ -122,6 +140,7 @@ function Register() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <small className="auth-field-help">{PASSWORD_RULE_TEXT}</small>
                 </div>
 
                 <button className="auth-submit" type="submit">

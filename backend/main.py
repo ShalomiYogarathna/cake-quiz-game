@@ -1,4 +1,5 @@
 import random
+import re
 import secrets
 from typing import Optional
 
@@ -60,6 +61,20 @@ TOKENS = {}
 
 MEALDB_DESSERTS_URL = "https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert"
 NUMBERS_API_URL = "http://numbersapi.com/{number}?json"
+PASSWORD_RULE_TEXT = (
+    "Password must be at least 8 characters and include an uppercase letter, "
+    "a lowercase letter, a number, and a special character."
+)
+
+
+def is_strong_password(password: str) -> bool:
+    return bool(
+        len(password) >= 8
+        and re.search(r"[A-Z]", password)
+        and re.search(r"[a-z]", password)
+        and re.search(r"\d", password)
+        and re.search(r"[^A-Za-z0-9]", password)
+    )
 
 
 def get_current_user(authorization: Optional[str]):
@@ -97,6 +112,9 @@ def register_user(payload: RegisterRequest):
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
+
+    if not is_strong_password(payload.password):
+        raise HTTPException(status_code=400, detail=PASSWORD_RULE_TEXT)
 
     create_user(payload.username, payload.email, payload.password)
 
