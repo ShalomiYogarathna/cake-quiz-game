@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function Result() {
   const location = useLocation();
@@ -10,30 +10,48 @@ function Result() {
   const token = localStorage.getItem("cake_quiz_token");
   const hasSavedScore = useRef(false);
   const [numberFact, setNumberFact] = useState("");
+  const [isSavingScore, setIsSavingScore] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
-useEffect(() => {
-  if (!token) {
-    return;
-  }
-  
-  if (hasSavedScore.current) {
-    return;
-  }
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
 
-  hasSavedScore.current = true;
+    if (hasSavedScore.current) {
+      return;
+    }
 
-  fetch("http://localhost:8000/scores", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      score,
-      total_questions: totalQuestions,
-    }),
-  }).catch((error) => console.error("Error saving score:", error));
-}, [score, token, totalQuestions]);
+    hasSavedScore.current = true;
+    setIsSavingScore(true);
+    setSaveMessage("Saving your score...");
+
+    fetch("http://localhost:8000/scores", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        score,
+        total_questions: totalQuestions,
+      }),
+      keepalive: true,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Could not save score");
+        }
+        setSaveMessage("Score saved to your dashboard.");
+      })
+      .catch((error) => {
+        console.error("Error saving score:", error);
+        setSaveMessage("We couldn't save this score. Please try this round again.");
+      })
+      .finally(() => {
+        setIsSavingScore(false);
+      });
+  }, [score, token, totalQuestions]);
 
   useEffect(() => {
     if (!token) {
@@ -51,7 +69,24 @@ useEffect(() => {
   }, [score, token]);
 
   const handlePlayAgain = () => {
+    if (isSavingScore) {
+      return;
+    }
     navigate("/quiz");
+  };
+
+  const handleViewDashboard = () => {
+    if (isSavingScore) {
+      return;
+    }
+    navigate("/dashboard");
+  };
+
+  const handleBackToLogin = () => {
+    if (isSavingScore) {
+      return;
+    }
+    navigate("/");
   };
 
   return (
@@ -90,8 +125,9 @@ useEffect(() => {
           <div className="result-message-card">
             <p className="result-message-title">Sweet work, baker!</p>
             <p className="result-message-text">
-              You finished the challenge and saved your score to your player profile.
+              You finished the challenge and your score will appear in your player dashboard.
             </p>
+            {saveMessage ? <p className="result-message-fact">🍬 {saveMessage}</p> : null}
             {numberFact ? (
               <p className="result-message-fact">🍬 Sweet number fact: {numberFact}</p>
             ) : null}
@@ -102,15 +138,26 @@ useEffect(() => {
               type="button"
               onClick={handlePlayAgain}
               className="result-primary-button"
+              disabled={isSavingScore}
             >
-              🍰 Play Again
+              {isSavingScore ? "Saving..." : "🍰 Play Again"}
             </button>
-            <Link to="/dashboard" className="result-link-button">
+            <button
+              type="button"
+              onClick={handleViewDashboard}
+              className="result-link-button"
+              disabled={isSavingScore}
+            >
               View Dashboard
-            </Link>
-            <Link to="/" className="result-link-button">
+            </button>
+            <button
+              type="button"
+              onClick={handleBackToLogin}
+              className="result-link-button"
+              disabled={isSavingScore}
+            >
               Back to Login
-            </Link>
+            </button>
           </div>
         </div>
       </div>

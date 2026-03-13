@@ -9,6 +9,8 @@ function Dashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+
     if (!token) {
       navigate("/");
       return;
@@ -42,6 +44,16 @@ function Dashboard() {
   const stats = dashboard?.stats;
   const history = dashboard?.history || [];
   const username = dashboard?.username || storedUsername;
+
+  const formatPlayedAt = (value) => {
+    if (!value) {
+      return "";
+    }
+
+    const utcDate = new Date(value.replace(" ", "T") + "Z");
+
+    return utcDate.toLocaleString();
+  };
 
   return (
     <div className="dashboard-shell">
@@ -112,7 +124,7 @@ function Dashboard() {
                         {entry.score}/{entry.total_questions}
                       </p>
                       <p className="dashboard-history-date">
-                        {new Date(entry.created_at).toLocaleString()}
+                        {formatPlayedAt(entry.created_at)}
                       </p>
                     </div>
                     <span className="dashboard-history-badge">
@@ -147,7 +159,7 @@ function Dashboard() {
                       <tr key={entry.id}>
                         <td>{entry.score}</td>
                         <td>{entry.total_questions}</td>
-                        <td>{new Date(entry.created_at).toLocaleString()}</td>
+                        <td>{formatPlayedAt(entry.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
