@@ -39,7 +39,7 @@ useEffect(() => {
 
       localStorage.setItem("cake_quiz_token", data.token);
       localStorage.setItem("cake_quiz_username", data.username);
-      navigate("/quiz");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     }

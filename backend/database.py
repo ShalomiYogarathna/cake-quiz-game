@@ -184,3 +184,45 @@ def get_scores_by_user(user_id):
     scores = cursor.fetchall()
     conn.close()
     return scores
+
+
+def get_score_summary_by_user(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            COUNT(*),
+            COALESCE(MAX(score), 0),
+            COALESCE(AVG(score), 0),
+            COALESCE(SUM(score), 0)
+        FROM scores
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+
+    summary = cursor.fetchone()
+
+    cursor.execute(
+        """
+        SELECT score, total_questions, created_at
+        FROM scores
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (user_id,),
+    )
+
+    latest_score = cursor.fetchone()
+    conn.close()
+
+    return {
+        "total_attempts": summary[0] or 0,
+        "best_score": summary[1] or 0,
+        "average_score": float(summary[2] or 0),
+        "total_score": summary[3] or 0,
+        "latest_score": latest_score,
+    }

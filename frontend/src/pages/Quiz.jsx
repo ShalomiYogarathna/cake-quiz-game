@@ -5,6 +5,7 @@ import "./Quiz.css";
 function Quiz() {
   const [score, setScore] = useState(0);
   const [roundNumber, setRoundNumber] = useState(1);
+  const [hasStarted, setHasStarted] = useState(false);
   const [bananaQuestion, setBananaQuestion] = useState(null);
   const [bananaAnswer, setBananaAnswer] = useState("");
   const [dessertQuestion, setDessertQuestion] = useState(null);
@@ -46,7 +47,7 @@ function Quiz() {
 
 
   useEffect(() => {
-    if (!token) {
+    if (!token || !hasStarted) {
       return;
     }
 
@@ -102,7 +103,7 @@ function Quiz() {
         console.error("Error loading dessert round:", error);
         setFeedback("We couldn't load the dessert round. Please try again.");
       });
-  }, [roundNumber, token]);
+  }, [hasStarted, roundNumber, token]);
 
   const handleBananaSubmit = () => {
     if (!bananaQuestion) {
@@ -164,16 +165,74 @@ function Quiz() {
     });
   };
 
+  const handleStartChallenge = () => {
+    setHasStarted(true);
+    setFeedback("");
+  };
+
   return (
     <div className="quiz-page">
-      <div className="quiz-deco quiz-deco-strawberry">🍓</div>
-      <div className="quiz-deco quiz-deco-donut">🍩</div>
-      <div className="quiz-deco quiz-deco-cupcake">🧁</div>
-      <div className="quiz-mascot" aria-hidden="true">
-        🍌
-      </div>
+      <div className="quiz-confetti quiz-confetti-a" aria-hidden="true" />
+      <div className="quiz-confetti quiz-confetti-b" aria-hidden="true" />
+      <div className="quiz-confetti quiz-confetti-c" aria-hidden="true" />
+      <div className="quiz-twinkle quiz-twinkle-a" aria-hidden="true" />
+      <div className="quiz-twinkle quiz-twinkle-b" aria-hidden="true" />
+      <div className="quiz-twinkle quiz-twinkle-c" aria-hidden="true" />
 
-      <div className="quiz-card-modern">
+      {!hasStarted ? (
+        <section className="quiz-start-screen">
+          <div className="quiz-start-cake-wrap" aria-hidden="true">
+            <div className="quiz-start-cake-shadow" />
+            <div className="quiz-start-cake">
+              <span className="quiz-start-cake-icing" />
+              <span className="quiz-start-cake-cherry" />
+            </div>
+          </div>
+
+          <div className="quiz-start-copy">
+            <h1 className="quiz-start-title">
+              <span className="quiz-start-title-icon" aria-hidden="true">
+                🍌
+              </span>
+              Cake Shop
+              <br />
+              Banana Challenge
+            </h1>
+            <p className="quiz-start-subtitle">
+              Ready for today&apos;s sweet puzzle challenge?
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="quiz-start-button"
+            onClick={handleStartChallenge}
+          >
+            Start Challenge
+          </button>
+
+          <a className="quiz-start-link" href="#how-to-play">
+            How to Play
+          </a>
+
+          <div className="quiz-start-howto" id="how-to-play">
+            <p>1. Solve the banana puzzle.</p>
+            <p>2. Pick the correct dessert image.</p>
+            <p>3. Finish with the sweetest score you can.</p>
+          </div>
+        </section>
+      ) : (
+        <div className="quiz-deco quiz-deco-strawberry">🍓</div>
+      )}
+      {hasStarted ? <div className="quiz-deco quiz-deco-donut">🍩</div> : null}
+      {hasStarted ? <div className="quiz-deco quiz-deco-cupcake">🧁</div> : null}
+      {hasStarted ? (
+        <div className="quiz-mascot" aria-hidden="true">
+          🍌
+        </div>
+      ) : null}
+
+      <div className={`quiz-card-modern${hasStarted ? "" : " quiz-card-hidden"}`}>
         <div className="quiz-topper-modern">
           <div className="quiz-topper-cake-modern" />
           <div className="quiz-topper-banner-modern">

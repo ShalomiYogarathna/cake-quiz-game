@@ -15,6 +15,7 @@ from database import (
     create_users_table,
     delete_token,
     get_email_by_token,
+    get_score_summary_by_user,
     get_scores_by_user,
     get_user_by_email,
     save_score,
@@ -211,6 +212,37 @@ def read_scores(authorization: Optional[str] = Header(default=None)):
         }
         for score in scores
     ]
+
+
+@app.get("/dashboard")
+def read_dashboard(authorization: Optional[str] = Header(default=None)):
+    user = get_current_user(authorization)
+    summary = get_score_summary_by_user(user["id"])
+    scores = get_scores_by_user(user["id"])
+
+    latest_score = summary["latest_score"]
+
+    return {
+        "username": user["username"],
+        "stats": {
+            "total_attempts": summary["total_attempts"],
+            "best_score": summary["best_score"],
+            "average_score": round(summary["average_score"], 2),
+            "total_score": summary["total_score"],
+            "latest_score": latest_score[0] if latest_score else 0,
+            "latest_total_questions": latest_score[1] if latest_score else 0,
+            "latest_played_at": latest_score[2] if latest_score else None,
+        },
+        "history": [
+            {
+                "id": score[0],
+                "score": score[1],
+                "total_questions": score[2],
+                "created_at": score[3],
+            }
+            for score in scores
+        ],
+    }
 
 
 @app.get("/number-fact/{number}")

@@ -105,6 +105,9 @@ useEffect(() => {
             >
               🍰 Play Again
             </button>
+            <Link to="/dashboard" className="result-link-button">
+              View Dashboard
+            </Link>
             <Link to="/" className="result-link-button">
               Back to Login
             </Link>
