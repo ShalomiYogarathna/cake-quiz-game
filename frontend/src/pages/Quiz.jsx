@@ -13,11 +13,28 @@ function Quiz() {
   const token = localStorage.getItem("cake_quiz_token");
   const username = localStorage.getItem("cake_quiz_username");
 
-  useEffect(() => {
+    useEffect(() => {
     if (!token) {
       navigate("/");
+      return;
     }
+
+    fetch("http://localhost:8000/session-user", {
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("No active session");
+        }
+        return response.json();
+      })
+      .catch(() => {
+        localStorage.removeItem("cake_quiz_token");
+        localStorage.removeItem("cake_quiz_username");
+        navigate("/");
+      });
   }, [navigate, token]);
+
 
   useEffect(() => {
     if (!token) {
@@ -25,7 +42,7 @@ function Quiz() {
     }
 
     if (roundNumber === 1) {
-      fetch("http://127.0.0.1:8000/banana", {
+      fetch("http://localhost:8000/banana", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +57,7 @@ function Quiz() {
       return;
     }
 
-    fetch("http://127.0.0.1:8000/cake-question/random", {
+    fetch("http://localhost:8000/cake-question/random", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

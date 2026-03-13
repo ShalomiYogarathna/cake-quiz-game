@@ -5,9 +5,14 @@ from typing import Optional
 import requests
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
+from fastapi import Request
+from database import create_users_table, create_user, get_user_by_email
 
 app = FastAPI()
+create_users_table()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,6 +20,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="cake-shop-secret-key",
 )
 
 
@@ -118,10 +128,20 @@ def get_current_user(authorization: Optional[str]):
     token = authorization.replace("Bearer ", "", 1)
     email = TOKENS.get(token)
 
-    if not email or email not in USERS:
+    if not email:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    return USERS[email]
+    user = get_user_by_email(email)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    return {
+        "id": user[0],
+        "username": user[1],
+        "email": user[2],
+    }
+
 
 
 @app.get("/")
@@ -131,31 +151,29 @@ def home():
 
 @app.post("/register")
 def register_user(payload: RegisterRequest):
-    if payload.email in USERS:
+    existing_user = get_user_by_email(payload.email)
+
+    if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    USERS[payload.email] = {
-        "username": payload.username,
-        "email": payload.email,
-        "password": payload.password,
-    }
+    create_user(payload.username, payload.email, payload.password)
 
     return {"message": "Registration successful"}
 
-
 @app.post("/login")
-def login_user(payload: LoginRequest):
-    user = USERS.get(payload.email)
+def login_user(payload: LoginRequest, request: Request):
+    user = get_user_by_email(payload.email)
 
-    if not user or user["password"] != payload.password:
+    if not user or user[3] != payload.password:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = secrets.token_hex(16)
     TOKENS[token] = payload.email
+    request.session["user_email"] = payload.email
 
     return {
         "token": token,
-        "username": user["username"],
+        "username": user[1],
     }
 
 
@@ -180,3 +198,26 @@ def get_banana_question(authorization: Optional[str] = Header(default=None)):
 def get_random_cake_question(authorization: Optional[str] = Header(default=None)):
     get_current_user(authorization)
     return random.choice(CAKE_QUESTIONS)
+
+@app.get("/session-user")
+def get_session_user(request: Request):
+    user_email = request.session.get("user_email")
+
+    if not user_email:
+        raise HTTPException(status_code=401, detail="No active session")
+
+    user = get_user_by_email(user_email)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "username": user[1],
+        "email": user[2],
+    }
+
+@app.post("/logout")
+def logout_user(request: Request):
+    request.session.clear()
+    return {"message": "Logged out successfully"}
+
