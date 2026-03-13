@@ -12,7 +12,7 @@ function Dashboard() {
     window.scrollTo({ top: 0, behavior: "auto" });
 
     if (!token) {
-      navigate("/");
+      navigate("/login");
       return;
     }
 
@@ -79,7 +79,7 @@ function Dashboard() {
             >
               Start Challenge
             </button>
-            <Link to="/" className="dashboard-link-button">
+            <Link to="/login" className="dashboard-link-button">
               Back to Login
             </Link>
           </div>

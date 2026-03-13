@@ -30,7 +30,7 @@ function Register() {
       }
 
       setSuccess("Registration complete. Continue to login.");
-      navigate("/");
+      navigate("/login");
     } catch (err) {
       setError(err.message);
     }
@@ -130,7 +130,7 @@ function Register() {
               {success ? <p className="auth-success">{success}</p> : null}
 
               <p className="auth-footer">
-                Already have an account? <Link to="/">Log In</Link>
+                Already have an account? <Link to="/login">Log In</Link>
               </p>
             </div>
           </section>

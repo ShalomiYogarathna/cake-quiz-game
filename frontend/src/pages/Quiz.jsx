@@ -18,7 +18,7 @@ function Quiz() {
   const handleAuthFailure = () => {
   localStorage.removeItem("cake_quiz_token");
   localStorage.removeItem("cake_quiz_username");
-  navigate("/", {
+  navigate("/login", {
     state: { authMessage: "Session expired. Please log in again." },
   });
 };
@@ -26,7 +26,7 @@ function Quiz() {
 
     useEffect(() => {
     if (!token) {
-      navigate("/");
+      navigate("/login");
       return;
     }
 

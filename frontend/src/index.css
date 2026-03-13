@@ -1733,3 +1733,308 @@ input {
     font-size: 40px;
   }
 }
+
+.start-screen {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.34), transparent 32%),
+    linear-gradient(180deg, #ffb0cf 0%, #ff8fbc 52%, #ffbcd8 100%);
+}
+
+.start-screen-glow {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: rgba(255, 241, 247, 0.26);
+  filter: blur(18px);
+}
+
+.start-screen-glow-left {
+  top: -90px;
+  left: -70px;
+}
+
+.start-screen-glow-right {
+  right: -90px;
+  bottom: -70px;
+}
+
+.start-screen-card {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 680px);
+  padding: 56px 34px;
+  border-radius: 36px;
+  text-align: center;
+  background: rgba(255, 245, 249, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 26px 60px rgba(142, 35, 82, 0.18);
+}
+
+.start-screen-kicker {
+  margin: 0 0 14px;
+  color: #fff5fa;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.start-screen-title {
+  margin: 0;
+  color: white;
+  font-family: "Fredoka", "Poppins", sans-serif;
+  font-size: clamp(52px, 11vw, 94px);
+  line-height: 0.9;
+  text-shadow: 0 10px 24px rgba(143, 42, 87, 0.22);
+}
+
+.start-screen-subtitle {
+  width: min(100%, 480px);
+  margin: 22px auto 0;
+  color: #fff6fb;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.start-screen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 34px;
+}
+
+.start-screen-button,
+.start-screen-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 170px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.start-screen-button {
+  color: var(--pink-700);
+  background: #fff8fb;
+  box-shadow: 0 16px 30px rgba(132, 28, 75, 0.2);
+}
+
+.start-screen-link {
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.start-screen-button:hover,
+.start-screen-link:hover {
+  transform: translateY(-3px);
+}
+
+.start-screen-cakes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.floating-cake,
+.floating-cupcake {
+  position: absolute;
+}
+
+.floating-cake {
+  width: 168px;
+  height: 132px;
+}
+
+.floating-cake-large {
+  top: 10%;
+  left: 8%;
+  animation: startFloatA 6s ease-in-out infinite;
+}
+
+.floating-cake-small {
+  right: 10%;
+  bottom: 12%;
+  transform: scale(0.82);
+  animation: startFloatB 5.3s ease-in-out infinite;
+}
+
+.floating-cake-base {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 12px;
+  height: 74px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #f8c98f, #e9ac6e);
+  box-shadow: 0 20px 30px rgba(161, 54, 96, 0.18);
+}
+
+.floating-cake-icing {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 28px;
+  height: 64px;
+  border-radius: 40px 40px 28px 28px;
+  background:
+    radial-gradient(circle at 22% 36%, #fff8fc 0, #fff8fc 14px, transparent 15px),
+    radial-gradient(circle at 76% 34%, #ffd96b 0, #ffd96b 10px, transparent 11px),
+    linear-gradient(180deg, #ffe5ef 0%, #ffc0d8 100%);
+}
+
+.floating-cake-icing::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: -12px;
+  height: 20px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 8% 0, #ffc0d8 0, #ffc0d8 12px, transparent 13px),
+    radial-gradient(circle at 28% 0, #ffc0d8 0, #ffc0d8 12px, transparent 13px),
+    radial-gradient(circle at 50% 0, #ffc0d8 0, #ffc0d8 12px, transparent 13px),
+    radial-gradient(circle at 72% 0, #ffc0d8 0, #ffc0d8 12px, transparent 13px),
+    radial-gradient(circle at 92% 0, #ffc0d8 0, #ffc0d8 12px, transparent 13px);
+}
+
+.floating-cake-cherry {
+  position: absolute;
+  top: 8px;
+  left: 112px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff4f87;
+  box-shadow: -12px 8px 0 -5px #79b75f;
+}
+
+.floating-cupcake {
+  top: 20%;
+  right: 14%;
+  width: 132px;
+  height: 154px;
+  animation: startFloatC 5.8s ease-in-out infinite;
+}
+
+.floating-cupcake-top {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 0;
+  height: 88px;
+  border-radius: 50% 50% 32% 32%;
+  background:
+    radial-gradient(circle at 28% 42%, #fff6fb 0, #fff6fb 12px, transparent 13px),
+    linear-gradient(180deg, #ffd7e7, #ffb1cd);
+}
+
+.floating-cupcake-bottom {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 0;
+  height: 84px;
+  border-radius: 18px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #efb57e 0,
+      #efb57e 12px,
+      #e2a566 12px,
+      #e2a566 24px
+    );
+}
+
+.floating-cupcake-dot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff5f94;
+}
+
+.floating-cupcake-dot-a {
+  top: 16px;
+  right: 26px;
+}
+
+.floating-cupcake-dot-b {
+  top: 28px;
+  left: 26px;
+}
+
+@keyframes startFloatA {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-5deg);
+  }
+  50% {
+    transform: translate3d(18px, -16px, 0) rotate(1deg);
+  }
+}
+
+@keyframes startFloatB {
+  0%,
+  100% {
+    transform: scale(0.82) translate3d(0, 0, 0) rotate(4deg);
+  }
+  50% {
+    transform: scale(0.82) translate3d(-18px, -18px, 0) rotate(-2deg);
+  }
+}
+
+@keyframes startFloatC {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(2deg);
+  }
+  50% {
+    transform: translate3d(-12px, -20px, 0) rotate(-4deg);
+  }
+}
+
+@media (max-width: 780px) {
+  .start-screen-card {
+    padding: 46px 22px;
+    border-radius: 28px;
+  }
+
+  .start-screen-title {
+    font-size: clamp(46px, 15vw, 70px);
+  }
+
+  .start-screen-subtitle {
+    font-size: 16px;
+  }
+
+  .floating-cake-large {
+    top: 7%;
+    left: -8px;
+    transform: scale(0.74);
+  }
+
+  .floating-cupcake {
+    top: 14%;
+    right: -8px;
+    transform: scale(0.74);
+  }
+
+  .floating-cake-small {
+    right: 2%;
+    bottom: 8%;
+  }
+}

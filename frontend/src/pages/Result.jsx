@@ -86,7 +86,7 @@ function Result() {
     if (isSavingScore) {
       return;
     }
-    navigate("/");
+    navigate("/login");
   };
 
   return (
