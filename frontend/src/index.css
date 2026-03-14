@@ -403,6 +403,37 @@ input {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.auth-password-wrap {
+  position: relative;
+}
+
+.auth-password-wrap input {
+  padding-right: 78px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--pink-500);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.auth-password-toggle:hover {
+  color: var(--pink-700);
+}
+
+.auth-password-toggle:focus-visible {
+  outline: 2px solid rgba(232, 77, 138, 0.35);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
 .auth-field input:focus {
   border-color: var(--pink-500);
   box-shadow: 0 0 0 4px rgba(232, 77, 138, 0.14);
