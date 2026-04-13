@@ -148,7 +148,9 @@ function Quiz() {
 
       <main className="quiz-card-modern">
         <div className="quiz-topper-modern" aria-hidden="true">
-          <div className="quiz-topper-cake-modern" />
+          <div className="quiz-topper-cake-modern">
+            <span className="quiz-topper-icon-modern">🎂</span>
+          </div>
           <div className="quiz-topper-banner-modern">
             <div className="quiz-topper-ribbon-modern quiz-topper-ribbon-left-modern" />
             <div className="quiz-topper-label-modern">Round {roundNumber} of 2</div>
