@@ -57,6 +57,9 @@ The application allows a player to:
 
 ## Setup Instructions
 
+Start the backend first, then start the frontend. The frontend depends on the backend
+for authentication, quiz data, score saving, and dashboard data.
+
 ### 1. Frontend setup
 
 From the project root:
@@ -68,6 +71,7 @@ npm run dev
 ```
 
 The frontend runs by default on `http://localhost:5173`.
+It sends API requests to `http://localhost:8000` unless `VITE_API_BASE_URL` is set.
 
 ### 2. Backend setup
 
@@ -82,6 +86,33 @@ uvicorn main:app --reload
 ```
 
 The backend runs by default on `http://localhost:8000`.
+
+## Environment Variables
+
+### Frontend
+
+- `VITE_API_BASE_URL`: optional override for the backend API base URL. If this is not
+  set, the frontend uses `http://localhost:8000`.
+
+### Backend
+
+- `SESSION_SECRET_KEY`: secret used to sign session cookies. If this is not set, the
+  app uses a local development default.
+- `SESSION_COOKIE_SECURE`: when set to `true`, cookies are sent only over HTTPS. The
+  default is `false`, which is suitable for local development.
+
+## Runtime Notes
+
+### Startup Order
+
+- Start the backend before using login, registration, quiz, result, or dashboard pages.
+- Start the frontend after the backend is available so browser requests can succeed.
+
+### Database Behaviour
+
+- The backend uses SQLite with the local file `backend/cake_shop.db`.
+- User and score tables are created automatically when the FastAPI app starts.
+- Score history is stored per authenticated user and is shown in the dashboard.
 
 ## How the Application Works
 
@@ -114,11 +145,24 @@ The backend communicates with external web services over HTTP and JSON:
 - Numbers API for score facts
 
 This demonstrates interoperability between this system and third-party services.
+The backend also includes fallback responses so the app can still function if an
+external service is unavailable.
 
 ### Virtual Identity
 
 The system uses user accounts, password validation, hashed passwords, protected routes,
 and session cookies to establish and manage virtual identity.
+
+## Fallback Behaviour
+
+- If the Banana API request fails, the backend returns a local fallback banana question.
+- If TheMealDB request fails or returns too few dessert items, the backend uses local
+  fallback dessert data.
+- If the Numbers API request fails, the backend returns fallback score text instead of
+  stopping the result page flow.
+
+These fallback paths help keep the application usable while still demonstrating
+interoperability with external services.
 
 ## Testing Evidence
 
