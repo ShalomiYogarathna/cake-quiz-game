@@ -80,6 +80,23 @@ def create_user(username, email, password):
     conn.close()
 
 
+def update_user_password(email, password):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE users
+        SET password = ?
+        WHERE email = ?
+        """,
+        (password, email),
+    )
+
+    conn.commit()
+    conn.close()
+
+
 def get_user_by_email(email):
     conn = get_connection()
     cursor = conn.cursor()

@@ -1,3 +1,7 @@
+import base64
+import hashlib
+import hmac
+import os
 import random
 import re
 import secrets
@@ -21,6 +25,7 @@ from database import (
     get_user_by_email,
     save_score,
     save_token,
+    update_user_password,
 )
 
 app = FastAPI()
@@ -65,6 +70,7 @@ PASSWORD_RULE_TEXT = (
     "Password must be at least 8 characters and include an uppercase letter, "
     "a lowercase letter, a number, and a special character."
 )
+PASSWORD_HASH_PREFIX = "pbkdf2_sha256"
 
 
 def is_strong_password(password: str) -> bool:
@@ -75,6 +81,29 @@ def is_strong_password(password: str) -> bool:
         and re.search(r"\d", password)
         and re.search(r"[^A-Za-z0-9]", password)
     )
+
+
+def hash_password(password: str) -> str:
+    salt = os.urandom(16)
+    derived_key = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 390000)
+    encoded_salt = base64.b64encode(salt).decode("utf-8")
+    encoded_key = base64.b64encode(derived_key).decode("utf-8")
+    return f"{PASSWORD_HASH_PREFIX}${encoded_salt}${encoded_key}"
+
+
+def verify_password(password: str, stored_password: str) -> bool:
+    try:
+        algorithm, encoded_salt, encoded_key = stored_password.split("$", 2)
+    except ValueError:
+        return hmac.compare_digest(stored_password, password)
+
+    if algorithm != PASSWORD_HASH_PREFIX:
+        return False
+
+    salt = base64.b64decode(encoded_salt.encode("utf-8"))
+    expected_key = base64.b64decode(encoded_key.encode("utf-8"))
+    candidate_key = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 390000)
+    return hmac.compare_digest(candidate_key, expected_key)
 
 
 def get_current_user(authorization: Optional[str]):
@@ -116,7 +145,7 @@ def register_user(payload: RegisterRequest):
     if not is_strong_password(payload.password):
         raise HTTPException(status_code=400, detail=PASSWORD_RULE_TEXT)
 
-    create_user(payload.username, payload.email, payload.password)
+    create_user(payload.username, payload.email, hash_password(payload.password))
 
     return {"message": "Registration successful"}
 
@@ -124,8 +153,11 @@ def register_user(payload: RegisterRequest):
 def login_user(payload: LoginRequest, request: Request):
     user = get_user_by_email(payload.email)
 
-    if not user or user[3] != payload.password:
+    if not user or not verify_password(payload.password, user[3]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not user[3].startswith(f"{PASSWORD_HASH_PREFIX}$"):
+        update_user_password(payload.email, hash_password(payload.password))
 
     token = secrets.token_hex(16)
     TOKENS[token] = payload.email
@@ -151,6 +183,7 @@ def get_me(authorization: Optional[str] = Header(default=None)):
 @app.get("/banana")
 def get_banana_question(authorization: Optional[str] = Header(default=None)):
     get_current_user(authorization)
+    # External interoperability source: University of Bedfordshire Banana API.
     response = requests.get("https://marcconrad.com/uob/banana/api.php", timeout=10)
     response.raise_for_status()
     return response.json()
@@ -160,6 +193,7 @@ def get_banana_question(authorization: Optional[str] = Header(default=None)):
 def get_random_dessert_question(authorization: Optional[str] = Header(default=None)):
     get_current_user(authorization)
 
+    # External interoperability source: TheMealDB dessert catalog API.
     response = requests.get(MEALDB_DESSERTS_URL, timeout=10)
     response.raise_for_status()
     meals = response.json().get("meals") or []
@@ -268,6 +302,7 @@ def get_number_fact(number: int, authorization: Optional[str] = Header(default=N
     get_current_user(authorization)
 
     try:
+        # External interoperability source: Numbers API.
         response = requests.get(NUMBERS_API_URL.format(number=number), timeout=10)
         response.raise_for_status()
         data = response.json()

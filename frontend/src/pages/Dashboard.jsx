@@ -1,44 +1,68 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiRequest, AuthError, logoutUser } from "../services/api";
+import { clearAuthSession, getStoredUsername } from "../utils/auth";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("cake_quiz_token");
-  const storedUsername = localStorage.getItem("cake_quiz_username") || "Player";
+  const storedUsername = getStoredUsername();
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleAuthFailure = useCallback(() => {
+    clearAuthSession();
+    navigate("/login", {
+      replace: true,
+      state: { authMessage: "Session expired. Please log in again." },
+    });
+  }, [navigate]);
+
+  const loadDashboard = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      const data = await apiRequest("/dashboard", { auth: true });
+      setDashboard(data);
+      setError("");
+    } catch (fetchError) {
+      if (fetchError instanceof AuthError) {
+        handleAuthFailure();
+        return;
+      }
+
+      console.error("Error loading dashboard:", fetchError);
+      setError("We couldn't load your score history right now.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [handleAuthFailure]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    fetch("http://localhost:8000/dashboard", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Could not load dashboard");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setDashboard(data);
-        setError("");
-      })
-      .catch((fetchError) => {
-        console.error("Error loading dashboard:", fetchError);
-        setError("We couldn't load your score history right now.");
-      });
-  }, [navigate, token]);
+    loadDashboard();
+  }, [loadDashboard]);
 
   const handleStartQuiz = () => {
     navigate("/quiz");
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      await logoutUser();
+      navigate("/login", {
+        replace: true,
+        state: { authMessage: "You have been logged out." },
+      });
+    } catch (logoutError) {
+      console.error("Error logging out:", logoutError);
+      setError("We couldn't log you out cleanly. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const stats = dashboard?.stats;
@@ -79,15 +103,29 @@ function Dashboard() {
             >
               Start Challenge
             </button>
-            <Link to="/login" className="dashboard-link-button">
-              Back to Login
-            </Link>
+            <button
+              type="button"
+              className="dashboard-link-button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? "Logging Out..." : "Log Out"}
+            </button>
           </div>
         </section>
 
         {error ? <p className="dashboard-error">{error}</p> : null}
 
-        <section className="dashboard-stats-grid">
+        {isLoading ? (
+          <section className="dashboard-panel">
+            <div className="dashboard-panel-head">
+              <h2>Loading Dashboard</h2>
+              <p>Gathering your latest cake challenge stats.</p>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="dashboard-stats-grid" aria-busy={isLoading}>
           <article className="dashboard-stat-card">
             <span className="dashboard-stat-label">Total Plays</span>
             <strong className="dashboard-stat-value">{stats?.total_attempts ?? 0}</strong>
@@ -107,6 +145,22 @@ function Dashboard() {
             </strong>
           </article>
         </section>
+
+        {error && !isLoading ? (
+          <section className="dashboard-panel">
+            <div className="dashboard-panel-head">
+              <h2>Try Again</h2>
+              <p>The dashboard could not be refreshed from the API.</p>
+            </div>
+            <button
+              type="button"
+              className="dashboard-primary-button"
+              onClick={loadDashboard}
+            >
+              Retry Dashboard Load
+            </button>
+          </section>
+        ) : null}
 
         <section className="dashboard-panels">
           <article className="dashboard-panel">

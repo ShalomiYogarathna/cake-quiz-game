@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiRequest } from "../services/api";
 
 const PASSWORD_RULE_TEXT =
   "Use 8+ characters with uppercase, lowercase, number, and special character.";
@@ -34,24 +35,17 @@ function Register() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/register", {
+      await apiRequest("/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, email, password }),
+        body: { username, email, password },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Registration failed");
-      }
-
       setSuccess("Registration complete. Continue to login.");
-      navigate("/login");
+      navigate("/login", {
+        state: { authMessage: "Registration complete. Please log in." },
+      });
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Registration failed");
     }
   };
 
@@ -73,6 +67,7 @@ function Register() {
         <div className="auth-top-image-wrap">
           <img
             className="auth-top-image"
+            // Decorative image source: Unsplash.
             src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80"
             alt="Pink cake decoration"
           />
