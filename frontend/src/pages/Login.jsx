@@ -1,35 +1,78 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
+
+=======
 import { apiRequest, AuthError } from "../services/api";
-import { setAuthSession } from "../utils/auth";
+import { useAuth } from "../hooks/useAuth";
+import { normalizeEmail, validateEmail } from "../utils/auth";
+>>>>>>> Stashed changes
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+<<<<<<< Updated upstream
+=======
+  const { refreshAuth } = useAuth();
   const authMessage = error || location.state?.authMessage || "";
+>>>>>>> Stashed changes
 
+useEffect(() => {
+  if (location.state?.authMessage) {
+    setError(location.state.authMessage);
+  }
+}, [location.state]);
+
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!validateEmail(normalizedEmail)) {
+      setEmailError("Enter a valid email address.");
+      return;
+    }
 
     try {
-      const data = await apiRequest("/login", {
+<<<<<<< Updated upstream
+      const response = await fetch("http://localhost:8000/login"
+, {
         method: "POST",
-        body: { email, password },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
       });
 
-      setAuthSession(data.token, data.username);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Login failed");
+      }
+
+      localStorage.setItem("cake_quiz_token", data.token);
+      localStorage.setItem("cake_quiz_username", data.username);
+      navigate("/dashboard");
+=======
+      await apiRequest("/login", {
+        method: "POST",
+        body: { email: normalizedEmail, password },
+      });
+
+      await refreshAuth();
       navigate(location.state?.from || "/dashboard", { replace: true });
+>>>>>>> Stashed changes
     } catch (err) {
-      setError(
-        err instanceof AuthError || err instanceof Error
-          ? err.message
-          : "Login failed"
-      );
+      setError(err.message);
     }
   };
 
@@ -51,7 +94,6 @@ function Login() {
         <div className="auth-top-image-wrap">
           <img
             className="auth-top-image"
-            // Decorative image source: Unsplash.
             src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80"
             alt="Pink cake decoration"
           />
@@ -98,8 +140,16 @@ function Login() {
                     type="email"
                     placeholder="Enter email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailError(
+                        e.target.value && !validateEmail(e.target.value)
+                          ? "Enter a valid email address."
+                          : ""
+                      );
+                    }}
                   />
+                  {emailError ? <small className="auth-field-help auth-field-help-error">{emailError}</small> : null}
                 </div>
 
                 <div className="auth-field">
@@ -127,7 +177,7 @@ function Login() {
                 </button>
               </form>
 
-              {authMessage ? <p className="auth-error">{authMessage}</p> : null}
+              {error ? <p className="auth-error">{error}</p> : null}
 
               <p className="auth-footer">
                 Don&apos;t have an account? <Link to="/register">Sign Up</Link>

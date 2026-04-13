@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
+=======
 import { apiRequest, AuthError, logoutUser } from "../services/api";
-import { clearAuthSession } from "../utils/auth";
+import { useAuth } from "../hooks/useAuth";
+>>>>>>> Stashed changes
 
 function Result() {
   const location = useLocation();
@@ -9,23 +12,32 @@ function Result() {
   const score = location.state?.score ?? 0;
   const totalQuestions = location.state?.totalQuestions ?? 2;
   const username = location.state?.username ?? "Player";
+  const token = localStorage.getItem("cake_quiz_token");
   const hasSavedScore = useRef(false);
   const [numberFact, setNumberFact] = useState("");
   const [isSavingScore, setIsSavingScore] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+<<<<<<< Updated upstream
+=======
   const [isLoadingFact, setIsLoadingFact] = useState(false);
   const [factError, setFactError] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { clearUser } = useAuth();
 
   const handleAuthFailure = useCallback(() => {
-    clearAuthSession();
+    clearUser();
     navigate("/login", {
       replace: true,
       state: { authMessage: "Session expired. Please log in again." },
     });
-  }, [navigate]);
+  }, [clearUser, navigate]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
+    if (!token) {
+      return;
+    }
+
     if (hasSavedScore.current) {
       return;
     }
@@ -34,29 +46,38 @@ function Result() {
     setIsSavingScore(true);
     setSaveMessage("Saving your score...");
 
-    apiRequest("/scores", {
+    fetch("http://localhost:8000/scores", {
       method: "POST",
-      auth: true,
+<<<<<<< Updated upstream
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+=======
       body: {
+>>>>>>> Stashed changes
         score,
         total_questions: totalQuestions,
-      },
+      }),
+      keepalive: true,
     })
-      .then(() => {
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Could not save score");
+        }
         setSaveMessage("Score saved to your dashboard.");
       })
       .catch((error) => {
-        if (error instanceof AuthError) {
-          handleAuthFailure();
-          return;
-        }
-
         console.error("Error saving score:", error);
         setSaveMessage("We couldn't save this score. Please try this round again.");
       })
       .finally(() => {
         setIsSavingScore(false);
       });
+<<<<<<< Updated upstream
+  }, [score, token, totalQuestions]);
+=======
   }, [handleAuthFailure, score, totalQuestions]);
 
   const loadNumberFact = useCallback(async () => {
@@ -64,7 +85,7 @@ function Result() {
     setFactError("");
 
     try {
-      const data = await apiRequest(`/number-fact/${score}`, { auth: true });
+      const data = await apiRequest(`/number-fact/${score}`);
       setNumberFact(data.text || "");
     } catch (error) {
       if (error instanceof AuthError) {
@@ -78,10 +99,22 @@ function Result() {
       setIsLoadingFact(false);
     }
   }, [handleAuthFailure, score]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
-    loadNumberFact();
-  }, [loadNumberFact]);
+    if (!token) {
+      return;
+    }
+
+    fetch(`http://localhost:8000/number-fact/${score}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => setNumberFact(data.text || ""))
+      .catch((error) => console.error("Error loading number fact:", error));
+  }, [score, token]);
 
   const handlePlayAgain = () => {
     if (isSavingScore) {
@@ -98,21 +131,18 @@ function Result() {
   };
 
   const handleBackToLogin = () => {
-    if (isSavingScore || isLoggingOut) {
-      return;
-    }
-    navigate("/login");
-  };
-
-  const handleLogout = async () => {
     if (isSavingScore) {
       return;
     }
+<<<<<<< Updated upstream
+    navigate("/login");
+=======
 
     setIsLoggingOut(true);
 
     try {
       await logoutUser();
+      clearUser();
       navigate("/login", {
         replace: true,
         state: { authMessage: "You have been logged out." },
@@ -123,6 +153,7 @@ function Result() {
     } finally {
       setIsLoggingOut(false);
     }
+>>>>>>> Stashed changes
   };
 
   return (
@@ -164,21 +195,23 @@ function Result() {
               You finished the challenge and your score will appear in your player dashboard.
             </p>
             {saveMessage ? <p className="result-message-fact">🍬 {saveMessage}</p> : null}
-            {isLoadingFact ? <p className="result-message-fact">🍬 Loading number fact...</p> : null}
             {numberFact ? (
               <p className="result-message-fact">🍬 Sweet number fact: {numberFact}</p>
             ) : null}
+<<<<<<< Updated upstream
+=======
             {factError ? <p className="result-message-fact">🍬 {factError}</p> : null}
             {factError ? (
               <button
                 type="button"
                 onClick={loadNumberFact}
                 className="result-link-button"
-                disabled={isLoadingFact}
-              >
-                Retry Number Fact
-              </button>
-            ) : null}
+              disabled={isLoadingFact}
+            >
+              Retry Number Fact
+            </button>
+          ) : null}
+>>>>>>> Stashed changes
           </div>
 
           <div className="result-actions">
@@ -205,14 +238,6 @@ function Result() {
               disabled={isSavingScore}
             >
               Back to Login
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="result-link-button"
-              disabled={isSavingScore || isLoggingOut}
-            >
-              {isLoggingOut ? "Logging Out..." : "Log Out"}
             </button>
           </div>
         </div>

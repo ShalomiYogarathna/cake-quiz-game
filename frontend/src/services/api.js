@@ -1,5 +1,3 @@
-import { clearAuthSession, getToken } from "../utils/auth";
-
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
@@ -32,22 +30,12 @@ async function parseResponse(response) {
 
 export async function apiRequest(
   path,
-  { method = "GET", body, auth = false, headers = {}, credentials = "include" } = {}
+  { method = "GET", body, headers = {}, credentials = "include" } = {}
 ) {
   const requestHeaders = { ...headers };
 
   if (body !== undefined) {
     requestHeaders["Content-Type"] = "application/json";
-  }
-
-  if (auth) {
-    const token = getToken();
-
-    if (!token) {
-      throw new AuthError();
-    }
-
-    requestHeaders.Authorization = `Bearer ${token}`;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -75,13 +63,5 @@ export async function apiRequest(
 }
 
 export async function logoutUser() {
-  try {
-    await apiRequest("/logout", { method: "POST", auth: true });
-  } catch (error) {
-    if (!(error instanceof AuthError)) {
-      throw error;
-    }
-  } finally {
-    clearAuthSession();
-  }
+  await apiRequest("/logout", { method: "POST" });
 }

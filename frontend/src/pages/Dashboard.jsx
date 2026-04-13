@@ -1,29 +1,40 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { apiRequest, AuthError, logoutUser } from "../services/api";
-import { clearAuthSession, getStoredUsername } from "../utils/auth";
+<<<<<<< Updated upstream
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const storedUsername = getStoredUsername();
+  const token = localStorage.getItem("cake_quiz_token");
+  const storedUsername = localStorage.getItem("cake_quiz_username") || "Player";
+  const [dashboard, setDashboard] = useState(null);
+  const [error, setError] = useState("");
+=======
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiRequest, AuthError, logoutUser } from "../services/api";
+import { useAuth } from "../hooks/useAuth";
+
+function Dashboard() {
+  const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { user, clearUser } = useAuth();
 
   const handleAuthFailure = useCallback(() => {
-    clearAuthSession();
+    clearUser();
     navigate("/login", {
       replace: true,
       state: { authMessage: "Session expired. Please log in again." },
     });
-  }, [navigate]);
+  }, [clearUser, navigate]);
 
   const loadDashboard = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      const data = await apiRequest("/dashboard", { auth: true });
+      const data = await apiRequest("/dashboard");
       setDashboard(data);
       setError("");
     } catch (fetchError) {
@@ -38,21 +49,49 @@ function Dashboard() {
       setIsLoading(false);
     }
   }, [handleAuthFailure]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
-    loadDashboard();
-  }, [loadDashboard]);
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    fetch("http://localhost:8000/dashboard", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Could not load dashboard");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setDashboard(data);
+        setError("");
+      })
+      .catch((fetchError) => {
+        console.error("Error loading dashboard:", fetchError);
+        setError("We couldn't load your score history right now.");
+      });
+  }, [navigate, token]);
 
   const handleStartQuiz = () => {
     navigate("/quiz");
   };
 
+<<<<<<< Updated upstream
+=======
   const handleLogout = async () => {
     setIsLoggingOut(true);
 
     try {
       await logoutUser();
+      clearUser();
       navigate("/login", {
         replace: true,
         state: { authMessage: "You have been logged out." },
@@ -65,9 +104,10 @@ function Dashboard() {
     }
   };
 
+>>>>>>> Stashed changes
   const stats = dashboard?.stats;
   const history = dashboard?.history || [];
-  const username = dashboard?.username || storedUsername;
+  const username = dashboard?.username || user?.username || "Player";
 
   const formatPlayedAt = (value) => {
     if (!value) {
@@ -103,29 +143,15 @@ function Dashboard() {
             >
               Start Challenge
             </button>
-            <button
-              type="button"
-              className="dashboard-link-button"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? "Logging Out..." : "Log Out"}
-            </button>
+            <Link to="/login" className="dashboard-link-button">
+              Back to Login
+            </Link>
           </div>
         </section>
 
         {error ? <p className="dashboard-error">{error}</p> : null}
 
-        {isLoading ? (
-          <section className="dashboard-panel">
-            <div className="dashboard-panel-head">
-              <h2>Loading Dashboard</h2>
-              <p>Gathering your latest cake challenge stats.</p>
-            </div>
-          </section>
-        ) : null}
-
-        <section className="dashboard-stats-grid" aria-busy={isLoading}>
+        <section className="dashboard-stats-grid">
           <article className="dashboard-stat-card">
             <span className="dashboard-stat-label">Total Plays</span>
             <strong className="dashboard-stat-value">{stats?.total_attempts ?? 0}</strong>
@@ -145,22 +171,6 @@ function Dashboard() {
             </strong>
           </article>
         </section>
-
-        {error && !isLoading ? (
-          <section className="dashboard-panel">
-            <div className="dashboard-panel-head">
-              <h2>Try Again</h2>
-              <p>The dashboard could not be refreshed from the API.</p>
-            </div>
-            <button
-              type="button"
-              className="dashboard-primary-button"
-              onClick={loadDashboard}
-            >
-              Retry Dashboard Load
-            </button>
-          </section>
-        ) : null}
 
         <section className="dashboard-panels">
           <article className="dashboard-panel">

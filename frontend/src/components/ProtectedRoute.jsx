@@ -1,10 +1,15 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { isAuthenticated } from "../utils/auth";
+import { useAuth } from "../hooks/useAuth";
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
+  const { isAuthenticated, isAuthResolved } = useAuth();
 
-  if (!isAuthenticated()) {
+  if (!isAuthResolved) {
+    return <div className="page-status">Checking your bakery session...</div>;
+  }
+
+  if (!isAuthenticated) {
     return (
       <Navigate
         to="/login"
