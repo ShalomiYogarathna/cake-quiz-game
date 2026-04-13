@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { apiRequest, AuthError } from "../services/api";
 import { setAuthSession } from "../utils/auth";
+import { sanitizeEmail, validateEmail } from "../utils/validation";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -15,11 +16,23 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    const normalizedEmail = sanitizeEmail(email);
+    const emailError = validateEmail(normalizedEmail);
+
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Password is required.");
+      return;
+    }
 
     try {
       const data = await apiRequest("/login", {
         method: "POST",
-        body: { email, password },
+        body: { email: normalizedEmail, password },
       });
 
       setAuthSession(data.token, data.username);
@@ -99,6 +112,7 @@ function Login() {
                     placeholder="Enter email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onBlur={(e) => setEmail(sanitizeEmail(e.target.value))}
                   />
                 </div>
 

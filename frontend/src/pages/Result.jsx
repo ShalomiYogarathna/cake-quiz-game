@@ -1,129 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { apiRequest, AuthError, logoutUser } from "../services/api";
-import { clearAuthSession } from "../utils/auth";
+import useResult from "../hooks/useResult";
 
 function Result() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const score = location.state?.score ?? 0;
-  const totalQuestions = location.state?.totalQuestions ?? 2;
-  const username = location.state?.username ?? "Player";
-  const hasSavedScore = useRef(false);
-  const [numberFact, setNumberFact] = useState("");
-  const [isSavingScore, setIsSavingScore] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
-  const [isLoadingFact, setIsLoadingFact] = useState(false);
-  const [factError, setFactError] = useState("");
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleAuthFailure = useCallback(() => {
-    clearAuthSession();
-    navigate("/login", {
-      replace: true,
-      state: { authMessage: "Session expired. Please log in again." },
-    });
-  }, [navigate]);
-
-  useEffect(() => {
-    if (hasSavedScore.current) {
-      return;
-    }
-
-    hasSavedScore.current = true;
-    setIsSavingScore(true);
-    setSaveMessage("Saving your score...");
-
-    apiRequest("/scores", {
-      method: "POST",
-      auth: true,
-      body: {
-        score,
-        total_questions: totalQuestions,
-      },
-    })
-      .then(() => {
-        setSaveMessage("Score saved to your dashboard.");
-      })
-      .catch((error) => {
-        if (error instanceof AuthError) {
-          handleAuthFailure();
-          return;
-        }
-
-        console.error("Error saving score:", error);
-        setSaveMessage("We couldn't save this score. Please try this round again.");
-      })
-      .finally(() => {
-        setIsSavingScore(false);
-      });
-  }, [handleAuthFailure, score, totalQuestions]);
-
-  const loadNumberFact = useCallback(async () => {
-    setIsLoadingFact(true);
-    setFactError("");
-
-    try {
-      const data = await apiRequest(`/number-fact/${score}`, { auth: true });
-      setNumberFact(data.text || "");
-    } catch (error) {
-      if (error instanceof AuthError) {
-        handleAuthFailure();
-        return;
-      }
-
-      console.error("Error loading number fact:", error);
-      setFactError("We couldn't load the number fact right now.");
-    } finally {
-      setIsLoadingFact(false);
-    }
-  }, [handleAuthFailure, score]);
-
-  useEffect(() => {
-    loadNumberFact();
-  }, [loadNumberFact]);
-
-  const handlePlayAgain = () => {
-    if (isSavingScore) {
-      return;
-    }
-    navigate("/quiz");
-  };
-
-  const handleViewDashboard = () => {
-    if (isSavingScore) {
-      return;
-    }
-    navigate("/dashboard");
-  };
-
-  const handleBackToLogin = () => {
-    if (isSavingScore || isLoggingOut) {
-      return;
-    }
-    navigate("/login");
-  };
-
-  const handleLogout = async () => {
-    if (isSavingScore) {
-      return;
-    }
-
-    setIsLoggingOut(true);
-
-    try {
-      await logoutUser();
-      navigate("/login", {
-        replace: true,
-        state: { authMessage: "You have been logged out." },
-      });
-    } catch (error) {
-      console.error("Error logging out:", error);
-      setFactError("We couldn't log you out cleanly. Please try again.");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
+  const {
+    score,
+    totalQuestions,
+    username,
+    numberFact,
+    isSavingScore,
+    saveMessage,
+    isLoadingFact,
+    factError,
+    isLoggingOut,
+    loadNumberFact,
+    handlePlayAgain,
+    handleViewDashboard,
+    handleBackToLogin,
+    handleLogout,
+  } = useResult();
 
   return (
     <div className="result-shell">

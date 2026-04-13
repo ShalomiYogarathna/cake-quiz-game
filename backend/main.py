@@ -11,7 +11,9 @@ import requests
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from pydantic import BaseModel
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, field_validator, model_validator
 from fastapi import Request
 from database import (
     create_scores_table,
@@ -52,14 +54,75 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
 
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        normalized_value = value.strip()
+
+        if not re.fullmatch(r"[A-Za-z0-9_ ]{3,20}", normalized_value):
+            raise ValueError(USERNAME_RULE_TEXT)
+
+        return normalized_value
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        normalized_value = value.strip().lower()
+
+        if not re.fullmatch(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", normalized_value):
+            raise ValueError(EMAIL_RULE_TEXT)
+
+        return normalized_value
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not is_strong_password(value):
+            raise ValueError(PASSWORD_RULE_TEXT)
+
+        return value
+
 
 class LoginRequest(BaseModel):
     email: str
     password: str
 
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        normalized_value = value.strip().lower()
+
+        if not re.fullmatch(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", normalized_value):
+            raise ValueError(EMAIL_RULE_TEXT)
+
+        return normalized_value
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        normalized_value = value.strip()
+
+        if not normalized_value:
+            raise ValueError("Password is required.")
+
+        return value
+
 class ScoreRequest(BaseModel):
     score: int
     total_questions: int
+
+    @model_validator(mode="after")
+    def validate_scores(self):
+        if self.total_questions <= 0:
+            raise ValueError("Total questions must be greater than 0.")
+
+        if self.score < 0:
+            raise ValueError("Score cannot be negative.")
+
+        if self.score > self.total_questions:
+            raise ValueError("Score cannot be greater than total questions.")
+
+        return self
 
 USERS = {}
 TOKENS = {}
@@ -70,6 +133,10 @@ PASSWORD_RULE_TEXT = (
     "Password must be at least 8 characters and include an uppercase letter, "
     "a lowercase letter, a number, and a special character."
 )
+USERNAME_RULE_TEXT = (
+    "Username must be 3-20 characters and use only letters, numbers, spaces, or underscores."
+)
+EMAIL_RULE_TEXT = "Enter a valid email address."
 PASSWORD_HASH_PREFIX = "pbkdf2_sha256"
 
 
@@ -81,6 +148,20 @@ def is_strong_password(password: str) -> bool:
         and re.search(r"\d", password)
         and re.search(r"[^A-Za-z0-9]", password)
     )
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(request: Request, exc: RequestValidationError):
+    first_error = exc.errors()[0] if exc.errors() else None
+
+    if first_error:
+        message = first_error.get("msg", "Invalid request data.")
+        if message.startswith("Value error, "):
+            message = message.replace("Value error, ", "", 1)
+    else:
+        message = "Invalid request data."
+
+    return JSONResponse(status_code=422, content={"detail": message})
 
 
 def hash_password(password: str) -> str:
@@ -141,9 +222,6 @@ def register_user(payload: RegisterRequest):
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-
-    if not is_strong_password(payload.password):
-        raise HTTPException(status_code=400, detail=PASSWORD_RULE_TEXT)
 
     create_user(payload.username, payload.email, hash_password(payload.password))
 

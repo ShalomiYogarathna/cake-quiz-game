@@ -1,83 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { apiRequest, AuthError, logoutUser } from "../services/api";
-import { clearAuthSession, getStoredUsername } from "../utils/auth";
+import useDashboard from "../hooks/useDashboard";
 
 function Dashboard() {
-  const navigate = useNavigate();
-  const storedUsername = getStoredUsername();
-  const [dashboard, setDashboard] = useState(null);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleAuthFailure = useCallback(() => {
-    clearAuthSession();
-    navigate("/login", {
-      replace: true,
-      state: { authMessage: "Session expired. Please log in again." },
-    });
-  }, [navigate]);
-
-  const loadDashboard = useCallback(async () => {
-    setIsLoading(true);
-
-    try {
-      const data = await apiRequest("/dashboard", { auth: true });
-      setDashboard(data);
-      setError("");
-    } catch (fetchError) {
-      if (fetchError instanceof AuthError) {
-        handleAuthFailure();
-        return;
-      }
-
-      console.error("Error loading dashboard:", fetchError);
-      setError("We couldn't load your score history right now.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handleAuthFailure]);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "auto" });
-    loadDashboard();
-  }, [loadDashboard]);
-
-  const handleStartQuiz = () => {
-    navigate("/quiz");
-  };
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-
-    try {
-      await logoutUser();
-      navigate("/login", {
-        replace: true,
-        state: { authMessage: "You have been logged out." },
-      });
-    } catch (logoutError) {
-      console.error("Error logging out:", logoutError);
-      setError("We couldn't log you out cleanly. Please try again.");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const stats = dashboard?.stats;
-  const history = dashboard?.history || [];
-  const username = dashboard?.username || storedUsername;
-
-  const formatPlayedAt = (value) => {
-    if (!value) {
-      return "";
-    }
-
-    const utcDate = new Date(value.replace(" ", "T") + "Z");
-
-    return utcDate.toLocaleString();
-  };
+  const {
+    error,
+    isLoading,
+    isLoggingOut,
+    loadDashboard,
+    startQuiz,
+    handleLogout,
+    formatPlayedAt,
+    username,
+    stats,
+    history,
+  } = useDashboard();
 
   return (
     <div className="dashboard-shell">
@@ -99,7 +34,7 @@ function Dashboard() {
             <button
               type="button"
               className="dashboard-primary-button"
-              onClick={handleStartQuiz}
+              onClick={startQuiz}
             >
               Start Challenge
             </button>

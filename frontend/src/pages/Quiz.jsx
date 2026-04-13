@@ -1,187 +1,28 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { apiRequest, AuthError, logoutUser } from "../services/api";
-import { clearAuthSession, getStoredUsername } from "../utils/auth";
+import useQuiz from "../hooks/useQuiz";
 import "./Quiz.css";
 
 function Quiz() {
-  const [score, setScore] = useState(0);
-  const [roundNumber, setRoundNumber] = useState(1);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [bananaQuestion, setBananaQuestion] = useState(null);
-  const [bananaAnswer, setBananaAnswer] = useState("");
-  const [dessertQuestion, setDessertQuestion] = useState(null);
-  const [selectedAnswerId, setSelectedAnswerId] = useState(null);
-  const [feedback, setFeedback] = useState("");
-  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
-  const [loadError, setLoadError] = useState("");
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const navigate = useNavigate();
-  const username = getStoredUsername();
-
-  const handleAuthFailure = useCallback(() => {
-    clearAuthSession();
-    navigate("/login", {
-      replace: true,
-      state: { authMessage: "Session expired. Please log in again." },
-    });
-  }, [navigate]);
-
-  const loadCurrentRound = useCallback(async () => {
-    if (!hasStarted) {
-      return;
-    }
-
-    setIsLoadingQuestion(true);
-    setLoadError("");
-
-    try {
-      if (roundNumber === 1) {
-        const data = await apiRequest("/banana", { auth: true });
-        setBananaQuestion(data);
-        setBananaAnswer("");
-        setDessertQuestion(null);
-      } else {
-        const data = await apiRequest("/dessert-question/random", { auth: true });
-        setDessertQuestion(data);
-        setSelectedAnswerId(null);
-        setBananaQuestion(null);
-      }
-
-      setFeedback("");
-    } catch (error) {
-      if (error instanceof AuthError) {
-        handleAuthFailure();
-        return;
-      }
-
-      console.error("Error loading round:", error);
-      setLoadError(
-        roundNumber === 1
-          ? "We couldn't load the banana puzzle. Please try again."
-          : "We couldn't load the dessert round. Please try again."
-      );
-    } finally {
-      setIsLoadingQuestion(false);
-    }
-  }, [handleAuthFailure, hasStarted, roundNumber]);
-
-  useEffect(() => {
-    apiRequest("/session-user").catch(() => {
-      handleAuthFailure();
-    });
-  }, [handleAuthFailure]);
-
-  useEffect(() => {
-    loadCurrentRound();
-  }, [loadCurrentRound]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return undefined;
-    }
-
-    const handleKeyDown = (event) => {
-      if (!hasStarted || roundNumber !== 1 || event.key !== "Enter") {
-        return;
-      }
-
-      if (document.activeElement?.tagName === "INPUT") {
-        handleBananaSubmit();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleBananaSubmit, hasStarted, roundNumber]);
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-
-    try {
-      await logoutUser();
-      navigate("/login", {
-        replace: true,
-        state: { authMessage: "You have been logged out." },
-      });
-    } catch (error) {
-      console.error("Error logging out:", error);
-      setLoadError("We couldn't log you out cleanly. Please try again.");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const handleBananaSubmit = useCallback(() => {
-    if (!bananaQuestion) {
-      return;
-    }
-
-    if (bananaAnswer.trim() === "") {
-      setFeedback("Enter an answer first.");
-      return;
-    }
-
-    const parsedAnswer = Number.parseInt(bananaAnswer, 10);
-
-    if (Number.isNaN(parsedAnswer)) {
-      setFeedback("Use numbers only for the banana answer.");
-      return;
-    }
-
-    if (parsedAnswer === bananaQuestion.solution) {
-      setScore((prevScore) => prevScore + 1);
-      setFeedback("Correct answer!");
-    } else {
-      setFeedback(`Wrong answer. The correct answer is ${bananaQuestion.solution}.`);
-    }
-  }, [bananaAnswer, bananaQuestion]);
-
-  const handleDessertAnswerClick = (answer) => {
-    if (selectedAnswerId !== null) {
-      return;
-    }
-
-    setSelectedAnswerId(answer.id);
-
-    if (answer.correct) {
-      setScore((prevScore) => prevScore + 1);
-      setFeedback("Correct answer!");
-    } else {
-      setFeedback("Wrong answer!");
-    }
-  };
-
-  const handleNextRound = () => {
-    if (roundNumber === 1) {
-      if (!feedback) {
-        setFeedback("Submit your Banana answer first.");
-        return;
-      }
-
-      setRoundNumber(2);
-      return;
-    }
-
-    if (selectedAnswerId === null) {
-      setFeedback("Choose an image answer first.");
-      return;
-    }
-
-    navigate("/result", {
-      state: {
-        score,
-        totalQuestions: 2,
-        username,
-      },
-    });
-  };
-
-  const handleStartChallenge = () => {
-    setHasStarted(true);
-    setFeedback("");
-    setLoadError("");
-  };
+  const {
+    score,
+    roundNumber,
+    hasStarted,
+    bananaQuestion,
+    bananaAnswer,
+    dessertQuestion,
+    selectedAnswerId,
+    feedback,
+    isLoadingQuestion,
+    loadError,
+    isLoggingOut,
+    username,
+    setBananaAnswer,
+    loadCurrentRound,
+    handleBananaSubmit,
+    handleDessertAnswerClick,
+    handleNextRound,
+    handleStartChallenge,
+    handleLogout,
+  } = useQuiz();
 
   return (
     <div className="quiz-page">

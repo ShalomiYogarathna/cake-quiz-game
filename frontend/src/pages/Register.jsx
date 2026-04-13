@@ -1,19 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
-
-const PASSWORD_RULE_TEXT =
-  "Use 8+ characters with uppercase, lowercase, number, and special character.";
-
-function isStrongPassword(password) {
-  return (
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /\d/.test(password) &&
-    /[^A-Za-z0-9]/.test(password)
-  );
-}
+import {
+  PASSWORD_RULE_TEXT,
+  USERNAME_RULE_TEXT,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+  sanitizeEmail,
+  sanitizeUsername,
+} from "../utils/validation";
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -29,15 +25,31 @@ function Register() {
     setError("");
     setSuccess("");
 
-    if (!isStrongPassword(password)) {
-      setError(PASSWORD_RULE_TEXT);
+    const normalizedUsername = sanitizeUsername(username);
+    const normalizedEmail = sanitizeEmail(email);
+    const usernameError = validateUsername(normalizedUsername);
+    const emailError = validateEmail(normalizedEmail);
+    const passwordError = validatePassword(password);
+
+    if (usernameError) {
+      setError(usernameError);
+      return;
+    }
+
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
     try {
       await apiRequest("/register", {
         method: "POST",
-        body: { username, email, password },
+        body: { username: normalizedUsername, email: normalizedEmail, password },
       });
 
       setSuccess("Registration complete. Continue to login.");
@@ -115,7 +127,9 @@ function Register() {
                     placeholder="Enter username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    onBlur={(e) => setUsername(sanitizeUsername(e.target.value))}
                   />
+                  <small className="auth-field-help">{USERNAME_RULE_TEXT}</small>
                 </div>
 
                 <div className="auth-field">
@@ -125,6 +139,7 @@ function Register() {
                     placeholder="Enter email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onBlur={(e) => setEmail(sanitizeEmail(e.target.value))}
                   />
                 </div>
 
