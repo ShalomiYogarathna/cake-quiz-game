@@ -25,6 +25,15 @@ from database import (
     update_user_password,
 )
 
+# External source acknowledgements:
+# - Banana puzzle data is requested from Marc Conrad's Banana API:
+#   https://marcconrad.com/uob/banana/doc.php
+# - Dessert data is requested from TheMealDB API:
+#   https://www.themealdb.com/api.php
+# - Score facts are requested from Numbers API:
+#   http://numbersapi.com/
+# - Fallback dessert image URLs below use publicly hosted Unsplash images.
+
 SESSION_MAX_AGE_SECONDS = 60 * 60 * 8
 SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "cake-shop-secret-key")
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
