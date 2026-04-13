@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-<<<<<<< Updated upstream
-
-=======
-import { apiRequest, AuthError } from "../services/api";
-<<<<<<< HEAD
+import { apiRequest } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
-import { normalizeEmail, validateEmail } from "../utils/auth";
->>>>>>> Stashed changes
-=======
-import { setAuthSession } from "../utils/auth";
 import { sanitizeEmail, validateEmail } from "../utils/validation";
->>>>>>> codex/refactor-auth-modularity
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -21,70 +12,33 @@ function Login() {
   const [emailError, setEmailError] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-<<<<<<< Updated upstream
-=======
   const { refreshAuth } = useAuth();
-  const authMessage = error || location.state?.authMessage || "";
->>>>>>> Stashed changes
 
-useEffect(() => {
-  if (location.state?.authMessage) {
-    setError(location.state.authMessage);
-  }
-}, [location.state]);
+  useEffect(() => {
+    if (location.state?.authMessage) {
+      setError(location.state.authMessage);
+    }
+  }, [location.state]);
 
-  
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
     setError("");
-<<<<<<< HEAD
-    setEmailError("");
 
-    const normalizedEmail = normalizeEmail(email);
-
-    if (!validateEmail(normalizedEmail)) {
-      setEmailError("Enter a valid email address.");
-=======
     const normalizedEmail = sanitizeEmail(email);
-    const emailError = validateEmail(normalizedEmail);
+    const nextEmailError = validateEmail(normalizedEmail);
+    setEmailError(nextEmailError);
 
-    if (emailError) {
-      setError(emailError);
+    if (nextEmailError) {
+      setError(nextEmailError);
       return;
     }
 
     if (!password.trim()) {
       setError("Password is required.");
->>>>>>> codex/refactor-auth-modularity
       return;
     }
 
     try {
-<<<<<<< Updated upstream
-      const response = await fetch("http://localhost:8000/login"
-, {
-        method: "POST",
-<<<<<<< HEAD
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-=======
-        body: { email: normalizedEmail, password },
->>>>>>> codex/refactor-auth-modularity
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Login failed");
-      }
-
-      localStorage.setItem("cake_quiz_token", data.token);
-      localStorage.setItem("cake_quiz_username", data.username);
-      navigate("/dashboard");
-=======
       await apiRequest("/login", {
         method: "POST",
         body: { email: normalizedEmail, password },
@@ -92,9 +46,8 @@ useEffect(() => {
 
       await refreshAuth();
       navigate(location.state?.from || "/dashboard", { replace: true });
->>>>>>> Stashed changes
-    } catch (err) {
-      setError(err.message);
+    } catch (requestError) {
+      setError(requestError.message);
     }
   };
 
@@ -152,63 +105,62 @@ useEffect(() => {
 
             <section className="auth-panel auth-panel-inline auth-panel-right">
               <div className="auth-form-card auth-form-card-right">
-              <h2>Log In</h2>
-              <p>Log in to start the Cake Shop Challenge</p>
+                <h2>Log In</h2>
+                <p>Log in to start the Cake Shop Challenge</p>
 
-              <form className="auth-form" onSubmit={handleLogin}>
-                <div className="auth-field">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    placeholder="Enter email"
-                    value={email}
-<<<<<<< HEAD
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setEmailError(
-                        e.target.value && !validateEmail(e.target.value)
-                          ? "Enter a valid email address."
-                          : ""
-                      );
-                    }}
-=======
-                    onChange={(e) => setEmail(e.target.value)}
-                    onBlur={(e) => setEmail(sanitizeEmail(e.target.value))}
->>>>>>> codex/refactor-auth-modularity
-                  />
-                  {emailError ? <small className="auth-field-help auth-field-help-error">{emailError}</small> : null}
-                </div>
-
-                <div className="auth-field">
-                  <label>Password</label>
-                  <div className="auth-password-wrap">
+                <form className="auth-form" onSubmit={handleLogin}>
+                  <div className="auth-field">
+                    <label>Email</label>
                     <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      type="email"
+                      placeholder="Enter email"
+                      value={email}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setEmail(nextValue);
+                        setEmailError(
+                          nextValue ? validateEmail(sanitizeEmail(nextValue)) : ""
+                        );
+                      }}
+                      onBlur={(event) => setEmail(sanitizeEmail(event.target.value))}
                     />
-                    <button
-                      className="auth-password-toggle"
-                      type="button"
-                      onClick={() => setShowPassword((visible) => !visible)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
+                    {emailError ? (
+                      <small className="auth-field-help auth-field-help-error">
+                        {emailError}
+                      </small>
+                    ) : null}
                   </div>
-                </div>
 
-                <button className="auth-submit" type="submit">
-                  Log In
-                </button>
-              </form>
+                  <div className="auth-field">
+                    <label>Password</label>
+                    <div className="auth-password-wrap">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                      />
+                      <button
+                        className="auth-password-toggle"
+                        type="button"
+                        onClick={() => setShowPassword((visible) => !visible)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                  </div>
 
-              {error ? <p className="auth-error">{error}</p> : null}
+                  <button className="auth-submit" type="submit">
+                    Log In
+                  </button>
+                </form>
 
-              <p className="auth-footer">
-                Don&apos;t have an account? <Link to="/register">Sign Up</Link>
-              </p>
+                {error ? <p className="auth-error">{error}</p> : null}
+
+                <p className="auth-footer">
+                  Don&apos;t have an account? <Link to="/register">Sign Up</Link>
+                </p>
               </div>
             </section>
           </div>

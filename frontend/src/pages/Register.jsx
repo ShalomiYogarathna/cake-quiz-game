@@ -1,20 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-<<<<<<< Updated upstream
-=======
 import { apiRequest } from "../services/api";
 import {
-<<<<<<< HEAD
-  normalizeEmail,
-  validateEmail,
-  validateStrongPassword,
-  validateUsername,
-} from "../utils/auth";
->>>>>>> Stashed changes
-
-const PASSWORD_RULE_TEXT =
-  "Use 8+ characters with uppercase, lowercase, number, and special character.";
-=======
   PASSWORD_RULE_TEXT,
   USERNAME_RULE_TEXT,
   validateEmail,
@@ -23,7 +10,6 @@ const PASSWORD_RULE_TEXT =
   sanitizeEmail,
   sanitizeUsername,
 } from "../utils/validation";
->>>>>>> codex/refactor-auth-modularity
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -31,87 +17,46 @@ function Register() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleRegister = async (event) => {
+    event.preventDefault();
     setError("");
-    setSuccess("");
-    setUsernameError("");
-    setEmailError("");
-    setPasswordError("");
 
-<<<<<<< HEAD
-    const normalizedEmail = normalizeEmail(email);
-
-    if (!validateUsername(username)) {
-      setUsernameError(
-        "Use 3-20 characters with letters, numbers, spaces, underscores, or hyphens."
-      );
-      return;
-    }
-
-    if (!validateEmail(normalizedEmail)) {
-      setEmailError("Enter a valid email address.");
-      return;
-    }
-
-    if (!validateStrongPassword(password)) {
-      setPasswordError(PASSWORD_RULE_TEXT);
-=======
     const normalizedUsername = sanitizeUsername(username);
     const normalizedEmail = sanitizeEmail(email);
-    const usernameError = validateUsername(normalizedUsername);
-    const emailError = validateEmail(normalizedEmail);
-    const passwordError = validatePassword(password);
+    const nextUsernameError = validateUsername(normalizedUsername);
+    const nextEmailError = validateEmail(normalizedEmail);
+    const nextPasswordError = validatePassword(password);
 
-    if (usernameError) {
-      setError(usernameError);
-      return;
-    }
+    setUsernameError(nextUsernameError);
+    setEmailError(nextEmailError);
+    setPasswordError(nextPasswordError);
 
-    if (emailError) {
-      setError(emailError);
-      return;
-    }
-
-    if (passwordError) {
-      setError(passwordError);
->>>>>>> codex/refactor-auth-modularity
+    if (nextUsernameError || nextEmailError || nextPasswordError) {
+      setError(nextUsernameError || nextEmailError || nextPasswordError);
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:8000/register", {
+      await apiRequest("/register", {
         method: "POST",
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-        headers: {
-          "Content-Type": "application/json",
+        body: {
+          username: normalizedUsername,
+          email: normalizedEmail,
+          password,
         },
-        body: JSON.stringify({ username, email, password }),
-=======
-        body: { username: username.trim(), email: normalizedEmail, password },
->>>>>>> Stashed changes
-=======
-        body: { username: normalizedUsername, email: normalizedEmail, password },
->>>>>>> codex/refactor-auth-modularity
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Registration failed");
-      }
-
-      setSuccess("Registration complete. Continue to login.");
-      navigate("/login");
-    } catch (err) {
-      setError(err.message);
+      navigate("/login", {
+        replace: true,
+        state: { authMessage: "Registration complete. Please log in." },
+      });
+    } catch (requestError) {
+      setError(requestError.message);
     }
   };
 
@@ -169,104 +114,99 @@ function Register() {
 
             <section className="auth-panel auth-panel-inline auth-panel-right">
               <div className="auth-form-card auth-form-card-right">
-              <h2>Sign Up</h2>
-              <p>Create an account to play the Cake Shop Challenge</p>
+                <h2>Sign Up</h2>
+                <p>Create an account to play the Cake Shop Challenge</p>
 
-              <form className="auth-form" onSubmit={handleRegister}>
-                <div className="auth-field">
-                  <label>Username</label>
-                  <input
-                    type="text"
-                    placeholder="Enter username"
-                    value={username}
-<<<<<<< HEAD
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setUsernameError(
-                        e.target.value && !validateUsername(e.target.value)
-                          ? "Use 3-20 characters with letters, numbers, spaces, underscores, or hyphens."
-                          : ""
-                      );
-                    }}
-                  />
-                  {usernameError ? (
-                    <small className="auth-field-help auth-field-help-error">{usernameError}</small>
-                  ) : null}
-=======
-                    onChange={(e) => setUsername(e.target.value)}
-                    onBlur={(e) => setUsername(sanitizeUsername(e.target.value))}
-                  />
-                  <small className="auth-field-help">{USERNAME_RULE_TEXT}</small>
->>>>>>> codex/refactor-auth-modularity
-                </div>
-
-                <div className="auth-field">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    placeholder="Enter email"
-                    value={email}
-<<<<<<< HEAD
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setEmailError(
-                        e.target.value && !validateEmail(e.target.value)
-                          ? "Enter a valid email address."
-                          : ""
-                      );
-                    }}
-=======
-                    onChange={(e) => setEmail(e.target.value)}
-                    onBlur={(e) => setEmail(sanitizeEmail(e.target.value))}
->>>>>>> codex/refactor-auth-modularity
-                  />
-                  {emailError ? (
-                    <small className="auth-field-help auth-field-help-error">{emailError}</small>
-                  ) : null}
-                </div>
-
-                <div className="auth-field">
-                  <label>Password</label>
-                  <div className="auth-password-wrap">
+                <form className="auth-form" onSubmit={handleRegister}>
+                  <div className="auth-field">
+                    <label>Username</label>
                     <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter password"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setPasswordError(
-                          e.target.value && !validateStrongPassword(e.target.value)
-                            ? PASSWORD_RULE_TEXT
-                            : ""
+                      type="text"
+                      placeholder="Enter username"
+                      value={username}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setUsername(nextValue);
+                        setUsernameError(
+                          nextValue ? validateUsername(sanitizeUsername(nextValue)) : ""
                         );
                       }}
+                      onBlur={(event) =>
+                        setUsername(sanitizeUsername(event.target.value))
+                      }
                     />
-                    <button
-                      className="auth-password-toggle"
-                      type="button"
-                      onClick={() => setShowPassword((visible) => !visible)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
+                    <small className="auth-field-help">{USERNAME_RULE_TEXT}</small>
+                    {usernameError ? (
+                      <small className="auth-field-help auth-field-help-error">
+                        {usernameError}
+                      </small>
+                    ) : null}
                   </div>
-                  <small className="auth-field-help">{PASSWORD_RULE_TEXT}</small>
-                  {passwordError ? (
-                    <small className="auth-field-help auth-field-help-error">{passwordError}</small>
-                  ) : null}
-                </div>
 
-                <button className="auth-submit" type="submit">
-                  Sign Up
-                </button>
-              </form>
+                  <div className="auth-field">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      placeholder="Enter email"
+                      value={email}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setEmail(nextValue);
+                        setEmailError(
+                          nextValue ? validateEmail(sanitizeEmail(nextValue)) : ""
+                        );
+                      }}
+                      onBlur={(event) => setEmail(sanitizeEmail(event.target.value))}
+                    />
+                    {emailError ? (
+                      <small className="auth-field-help auth-field-help-error">
+                        {emailError}
+                      </small>
+                    ) : null}
+                  </div>
 
-              {error ? <p className="auth-error">{error}</p> : null}
-              {success ? <p className="auth-success">{success}</p> : null}
+                  <div className="auth-field">
+                    <label>Password</label>
+                    <div className="auth-password-wrap">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter password"
+                        value={password}
+                        onChange={(event) => {
+                          const nextValue = event.target.value;
+                          setPassword(nextValue);
+                          setPasswordError(
+                            nextValue ? validatePassword(nextValue) : ""
+                          );
+                        }}
+                      />
+                      <button
+                        className="auth-password-toggle"
+                        type="button"
+                        onClick={() => setShowPassword((visible) => !visible)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    <small className="auth-field-help">{PASSWORD_RULE_TEXT}</small>
+                    {passwordError ? (
+                      <small className="auth-field-help auth-field-help-error">
+                        {passwordError}
+                      </small>
+                    ) : null}
+                  </div>
 
-              <p className="auth-footer">
-                Already have an account? <Link to="/login">Log In</Link>
-              </p>
+                  <button className="auth-submit" type="submit">
+                    Sign Up
+                  </button>
+                </form>
+
+                {error ? <p className="auth-error">{error}</p> : null}
+
+                <p className="auth-footer">
+                  Already have an account? <Link to="/login">Log In</Link>
+                </p>
               </div>
             </section>
           </div>
