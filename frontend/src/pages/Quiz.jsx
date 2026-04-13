@@ -45,47 +45,80 @@ function Quiz() {
         <div className="quiz-twinkle quiz-twinkle-a" aria-hidden="true" />
         <div className="quiz-twinkle quiz-twinkle-b" aria-hidden="true" />
         <div className="quiz-twinkle quiz-twinkle-c" aria-hidden="true" />
+        <div className="quiz-start-orbit quiz-start-orbit-a" aria-hidden="true">
+          <span>🧁</span>
+        </div>
+        <div className="quiz-start-orbit quiz-start-orbit-b" aria-hidden="true">
+          <span>🍩</span>
+        </div>
+        <div className="quiz-start-orbit quiz-start-orbit-c" aria-hidden="true">
+          <span>🍓</span>
+        </div>
+        <div className="quiz-start-orbit quiz-start-orbit-d" aria-hidden="true">
+          <span>🍰</span>
+        </div>
+        <div className="quiz-start-swish quiz-start-swish-a" aria-hidden="true" />
+        <div className="quiz-start-swish quiz-start-swish-b" aria-hidden="true" />
 
         <section className="quiz-start-screen">
-          <div className="quiz-start-cake-wrap" aria-hidden="true">
-            <div className="quiz-start-cake-shadow" />
-            <div className="quiz-start-cake">
-              <div className="quiz-start-cake-icing" />
-              <div className="quiz-start-cake-cherry" />
-            </div>
-          </div>
+          <div className="quiz-start-stage">
+            <div className="quiz-start-badge">Sugar Rush Mode</div>
 
-          <div className="quiz-start-copy">
-            <h1 className="quiz-start-title">
-              <span className="quiz-start-title-icon">🍰</span>
-              Sweet Challenge
-            </h1>
-            <p className="quiz-start-subtitle">
-              Two bakery rounds, a live countdown, and fast reactions. Enter the
-              challenge when you&apos;re ready.
-            </p>
-
-            <button
-              type="button"
-              className="quiz-start-button"
-              onClick={handleStartChallenge}
-            >
-              Start Challenge
-            </button>
-
-            <div className="quiz-start-howto">
-              <p>Round 1: solve the banana puzzle before the timer runs out.</p>
-              <p>Round 2: pick the correct dessert image before the countdown hits zero.</p>
+            <div className="quiz-start-hero-icon-wrap" aria-hidden="true">
+              <div className="quiz-start-hero-icon-glow" />
+              <div className="quiz-start-hero-icon">🎂</div>
+              <div className="quiz-start-hero-mini quiz-start-hero-mini-left">🍓</div>
+              <div className="quiz-start-hero-mini quiz-start-hero-mini-right">✨</div>
+              <div className="quiz-start-hero-mini quiz-start-hero-mini-bottom">🧁</div>
             </div>
 
-            <button
-              type="button"
-              className="quiz-start-link quiz-start-link-button"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? "Logging Out..." : "Log Out"}
-            </button>
+            <div className="quiz-start-copy">
+              <h1 className="quiz-start-title">
+                <span className="quiz-start-title-icon">🍰</span>
+                Sweet Challenge
+              </h1>
+              <p className="quiz-start-subtitle">
+                Jump into a candy-colored bakery race with floating treats, fast rounds,
+                and a countdown that keeps the energy high.
+              </p>
+
+              <div className="quiz-start-feature-row" aria-hidden="true">
+                <div className="quiz-start-feature-pill">2 Sweet Rounds</div>
+                <div className="quiz-start-feature-pill">Live Timer</div>
+                <div className="quiz-start-feature-pill">Quick Reactions</div>
+              </div>
+
+              <button
+                type="button"
+                className="quiz-start-button"
+                onClick={handleStartChallenge}
+              >
+                <span className="quiz-start-button-spark">Start Challenge</span>
+              </button>
+
+              <div className="quiz-start-howto">
+                <div className="quiz-start-howto-row">
+                  <span className="quiz-start-howto-label">Round 1</span>
+                  <p>Solve the banana puzzle before the timer runs out.</p>
+                </div>
+                <div className="quiz-start-howto-row">
+                  <span className="quiz-start-howto-label">Round 2</span>
+                  <p>Pick the correct dessert image before the countdown hits zero.</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="quiz-start-link quiz-start-link-button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                <span className="quiz-start-link-icon" aria-hidden="true">
+                  🍒
+                </span>
+                <span>{isLoggingOut ? "Leaving the bakery..." : "Log Out"}</span>
+              </button>
+            </div>
           </div>
         </section>
       </div>
