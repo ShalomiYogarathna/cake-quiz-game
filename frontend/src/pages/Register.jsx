@@ -11,6 +11,9 @@ import {
   sanitizeUsername,
 } from "../utils/validation";
 
+// Source acknowledgement:
+// The decorative hero image in this page is loaded from Unsplash.
+
 function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");

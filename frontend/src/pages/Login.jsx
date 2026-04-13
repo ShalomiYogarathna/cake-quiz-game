@@ -4,6 +4,9 @@ import { apiRequest } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { sanitizeEmail, validateEmail } from "../utils/validation";
 
+// Source acknowledgement:
+// The decorative hero image in this page is loaded from Unsplash.
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
