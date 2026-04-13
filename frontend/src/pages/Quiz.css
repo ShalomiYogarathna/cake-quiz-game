@@ -511,33 +511,42 @@
 .quiz-topper-cake-modern {
   position: absolute;
   left: 50%;
-  top: -4px;
+  top: -10px;
   transform: translateX(-50%);
-  width: 210px;
+  width: 110px;
   height: 110px;
-  border-radius: 110px 110px 30px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   background:
-    radial-gradient(circle at 74% 20%, #ff6c9f 0, #ff6c9f 18px, transparent 19px),
-    radial-gradient(circle at 62% 16%, #ffe886 0, #ffe886 14px, transparent 15px),
-    radial-gradient(circle at 48% 0%, #fff8fb 0, #fff8fb 24px, transparent 25px),
-    linear-gradient(180deg, #ffbcd3 0%, #ffd7e5 34%, #fff4f8 35%, #fff4f8 58%, #f3d6b0 59%, #edbe7f 100%);
-  box-shadow: 0 18px 26px rgba(200, 112, 145, 0.18);
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.35) 42%, transparent 60%),
+    linear-gradient(180deg, #ffd4e3, #ffb6cf);
+  border: 3px solid rgba(240, 154, 190, 0.7);
+  box-shadow:
+    0 18px 30px rgba(200, 112, 145, 0.18),
+    inset 0 2px 0 rgba(255, 255, 255, 0.82);
 }
 
 .quiz-topper-cake-modern::before {
   content: "";
   position: absolute;
-  left: 38px;
-  right: 38px;
-  top: -14px;
-  height: 32px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, #fff8fb, #ffdce8);
+  inset: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+.quiz-topper-icon-modern {
+  position: relative;
+  z-index: 1;
+  font-size: 3.6rem;
+  line-height: 1;
+  filter: drop-shadow(0 8px 10px rgba(166, 83, 118, 0.22));
 }
 
 .quiz-topper-banner-modern {
   position: relative;
-  margin-top: 68px;
+  margin-top: 74px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -637,8 +646,8 @@
 
 .banana-layout-modern {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.9fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1.9fr) minmax(260px, 0.75fr);
+  gap: 20px;
   align-items: stretch;
 }
 
@@ -647,8 +656,8 @@
 }
 
 .puzzle-frame-modern {
-  padding: 18px;
-  border-radius: 26px;
+  padding: 12px;
+  border-radius: 22px;
   background:
     linear-gradient(180deg, #fffafc, #fff5f9),
     rgba(255, 255, 255, 0.78);
@@ -659,12 +668,12 @@
 .puzzle-image-modern {
   display: block;
   width: 100%;
-  max-width: 780px;
+  max-width: none;
   margin: 0 auto;
   height: auto;
-  border-radius: 18px;
+  border-radius: 16px;
   background: #fff;
-  box-shadow: 0 10px 24px rgba(182, 112, 141, 0.1);
+  box-shadow: 0 10px 24px rgba(182, 112, 141, 0.08);
 }
 
 .banana-controls-modern {
@@ -1163,12 +1172,12 @@
   }
 
   .quiz-topper-cake-modern {
-    width: 164px;
-    height: 88px;
+    width: 90px;
+    height: 90px;
   }
 
   .quiz-topper-banner-modern {
-    margin-top: 54px;
+    margin-top: 60px;
   }
 
   .quiz-topper-label-modern {

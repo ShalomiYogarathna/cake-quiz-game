@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import useAuth from "./useAuth";
 
-const ROUND_TIME_LIMIT_SECONDS = 30;
+const ROUND_TIME_LIMIT_SECONDS = 60;
 const ROUND_TIME_LIMIT_MS = ROUND_TIME_LIMIT_SECONDS * 1000;
 
 function getBananaAnswerError(value) {
