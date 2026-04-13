@@ -4,6 +4,7 @@ import hmac
 import os
 import random
 import re
+import time
 
 import requests
 from fastapi import FastAPI, HTTPException, Request
@@ -24,6 +25,10 @@ from database import (
     update_user_password,
 )
 
+SESSION_MAX_AGE_SECONDS = 60 * 60 * 8
+SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "cake-shop-secret-key")
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
+
 app = FastAPI()
 create_users_table()
 create_scores_table()
@@ -38,7 +43,10 @@ app.add_middleware(
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key="cake-shop-secret-key",
+    secret_key=SESSION_SECRET_KEY,
+    max_age=SESSION_MAX_AGE_SECONDS,
+    same_site="lax",
+    https_only=SESSION_COOKIE_SECURE,
 )
 
 MEALDB_DESSERTS_URL = "https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert"
@@ -52,6 +60,7 @@ USERNAME_RULE_TEXT = (
     "Username must be 3-20 characters and use only letters, numbers, spaces, or underscores."
 )
 EMAIL_RULE_TEXT = "Enter a valid email address."
+SESSION_EXPIRED_TEXT = "Session expired. Please log in again."
 BANANA_FALLBACK_QUESTION = {
     "question": "https://marcconrad.com/uob/banana/example.png",
     "solution": 6,
@@ -141,16 +150,30 @@ def verify_password(password: str, stored_password: str) -> bool:
     return hmac.compare_digest(candidate_key, expected_key)
 
 
+def start_user_session(request: Request, email: str):
+    expires_at = int(time.time()) + SESSION_MAX_AGE_SECONDS
+    request.session["user_email"] = email
+    request.session["expires_at"] = expires_at
+
+
 def get_current_user(request: Request):
     email = request.session.get("user_email")
+    expires_at = request.session.get("expires_at")
 
     if not email:
         raise HTTPException(status_code=401, detail="No active session")
 
+    if not isinstance(expires_at, int) or expires_at <= int(time.time()):
+        request.session.clear()
+        raise HTTPException(status_code=401, detail=SESSION_EXPIRED_TEXT)
+
     user = get_user_by_email(email)
 
     if not user:
+        request.session.clear()
         raise HTTPException(status_code=401, detail="User not found")
+
+    start_user_session(request, email)
 
     return {
         "id": user[0],
@@ -272,7 +295,7 @@ def login_user(payload: LoginRequest, request: Request):
     if not user[3].startswith(f"{PASSWORD_HASH_PREFIX}$"):
         update_user_password(email, hash_password(payload.password))
 
-    request.session["user_email"] = email
+    start_user_session(request, email)
 
     return {
         "username": user[1],

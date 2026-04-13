@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest, AuthError } from "../services/api";
+import { apiRequest } from "../services/api";
 import useAuth from "./useAuth";
 
 const ROUND_TIME_LIMIT_SECONDS = 30;
@@ -22,7 +22,7 @@ function getBananaAnswerError(value) {
 
 function useQuiz() {
   const navigate = useNavigate();
-  const { username, handleAuthFailure, logout } = useAuth();
+  const { username, logout } = useAuth();
   const [score, setScore] = useState(0);
   const [roundNumber, setRoundNumber] = useState(1);
   const [hasStarted, setHasStarted] = useState(false);
@@ -68,11 +68,6 @@ function useQuiz() {
         setBananaQuestion(null);
       }
     } catch (error) {
-      if (error instanceof AuthError) {
-        handleAuthFailure();
-        return;
-      }
-
       console.error("Error loading round:", error);
       setLoadError(
         isBananaRound
@@ -82,13 +77,7 @@ function useQuiz() {
     } finally {
       setIsLoadingQuestion(false);
     }
-  }, [handleAuthFailure, hasStarted, isBananaRound]);
-
-  useEffect(() => {
-    apiRequest("/session-user").catch(() => {
-      handleAuthFailure();
-    });
-  }, [handleAuthFailure]);
+  }, [hasStarted, isBananaRound]);
 
   useEffect(() => {
     loadCurrentRound();

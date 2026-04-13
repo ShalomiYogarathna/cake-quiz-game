@@ -42,6 +42,7 @@ function Login() {
       await apiRequest("/login", {
         method: "POST",
         body: { email: normalizedEmail, password },
+        authFailureBehavior: "ignore",
       });
 
       await refreshAuth();
