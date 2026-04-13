@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiRequest, AuthError } from "../services/api";
+import { apiRequest } from "../services/api";
 import useAuth from "./useAuth";
 
 function useDashboard() {
   const navigate = useNavigate();
-  const { username: storedUsername, handleAuthFailure, logout } = useAuth();
+  const { username: storedUsername, logout } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -15,21 +15,16 @@ function useDashboard() {
     setIsLoading(true);
 
     try {
-      const data = await apiRequest("/dashboard", { auth: true });
+      const data = await apiRequest("/dashboard");
       setDashboard(data);
       setError("");
     } catch (fetchError) {
-      if (fetchError instanceof AuthError) {
-        handleAuthFailure();
-        return;
-      }
-
       console.error("Error loading dashboard:", fetchError);
       setError("We couldn't load your score history right now.");
     } finally {
       setIsLoading(false);
     }
-  }, [handleAuthFailure]);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { apiRequest, AuthError } from "../services/api";
+import { apiRequest } from "../services/api";
 import useAuth from "./useAuth";
 
 function useResult() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { handleAuthFailure, logout } = useAuth();
+  const { logout } = useAuth();
   const score = location.state?.score ?? 0;
   const totalQuestions = location.state?.totalQuestions ?? 2;
   const username = location.state?.username ?? "Player";
@@ -29,7 +29,6 @@ function useResult() {
 
     apiRequest("/scores", {
       method: "POST",
-      auth: true,
       body: {
         score,
         total_questions: totalQuestions,
@@ -39,38 +38,28 @@ function useResult() {
         setSaveMessage("Score saved to your dashboard.");
       })
       .catch((error) => {
-        if (error instanceof AuthError) {
-          handleAuthFailure();
-          return;
-        }
-
         console.error("Error saving score:", error);
         setSaveMessage("We couldn't save this score. Please try this round again.");
       })
       .finally(() => {
         setIsSavingScore(false);
       });
-  }, [handleAuthFailure, score, totalQuestions]);
+  }, [score, totalQuestions]);
 
   const loadNumberFact = useCallback(async () => {
     setIsLoadingFact(true);
     setFactError("");
 
     try {
-      const data = await apiRequest(`/number-fact/${score}`, { auth: true });
+      const data = await apiRequest(`/number-fact/${score}`);
       setNumberFact(data.text || "");
     } catch (error) {
-      if (error instanceof AuthError) {
-        handleAuthFailure();
-        return;
-      }
-
       console.error("Error loading number fact:", error);
       setFactError("We couldn't load the number fact right now.");
     } finally {
       setIsLoadingFact(false);
     }
-  }, [handleAuthFailure, score]);
+  }, [score]);
 
   useEffect(() => {
     loadNumberFact();

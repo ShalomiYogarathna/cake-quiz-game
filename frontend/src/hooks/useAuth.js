@@ -11,7 +11,7 @@ function useAuth() {
     throw new Error("useAuth must be used within an AuthProvider.");
   }
 
-  const { user, clearUser } = context;
+  const { user, clearUser, handleSessionExpired } = context;
 
   const redirectToLogin = useCallback(
     (authMessage) => {
@@ -22,11 +22,6 @@ function useAuth() {
     },
     [navigate]
   );
-
-  const handleAuthFailure = useCallback(() => {
-    clearUser();
-    redirectToLogin("Session expired. Please log in again.");
-  }, [clearUser, redirectToLogin]);
 
   const logout = useCallback(
     async (setError) => {
@@ -51,8 +46,9 @@ function useAuth() {
   return {
     ...context,
     username: user?.username || "Player",
-    handleAuthFailure,
     logout,
+    redirectToLogin,
+    handleSessionExpired,
   };
 }
 

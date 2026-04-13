@@ -1,6 +1,8 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
+const unauthorizedListeners = new Set();
+
 export class ApiError extends Error {
   constructor(message, status, data) {
     super(message);
@@ -28,9 +30,29 @@ async function parseResponse(response) {
   return text ? { message: text } : {};
 }
 
+function notifyUnauthorized(error) {
+  unauthorizedListeners.forEach((listener) => {
+    listener(error);
+  });
+}
+
+export function subscribeToUnauthorized(listener) {
+  unauthorizedListeners.add(listener);
+
+  return () => {
+    unauthorizedListeners.delete(listener);
+  };
+}
+
 export async function apiRequest(
   path,
-  { method = "GET", body, headers = {}, credentials = "include" } = {}
+  {
+    method = "GET",
+    body,
+    headers = {},
+    credentials = "include",
+    authFailureBehavior = "notify",
+  } = {}
 ) {
   const requestHeaders = { ...headers };
 
@@ -49,7 +71,13 @@ export async function apiRequest(
 
   if (!response.ok) {
     if (response.status === 401) {
-      throw new AuthError(data.detail || data.message, data);
+      const authError = new AuthError(data.detail || data.message, data);
+
+      if (authFailureBehavior === "notify") {
+        notifyUnauthorized(authError);
+      }
+
+      throw authError;
     }
 
     throw new ApiError(
@@ -63,5 +91,8 @@ export async function apiRequest(
 }
 
 export async function logoutUser() {
-  await apiRequest("/logout", { method: "POST" });
+  await apiRequest("/logout", {
+    method: "POST",
+    authFailureBehavior: "ignore",
+  });
 }
