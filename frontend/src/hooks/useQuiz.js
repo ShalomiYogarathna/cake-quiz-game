@@ -3,6 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest, AuthError } from "../services/api";
 import useAuth from "./useAuth";
 
+const ROUND_TIME_LIMIT_SECONDS = 30;
+const ROUND_TIME_LIMIT_MS = ROUND_TIME_LIMIT_SECONDS * 1000;
+
+function getBananaAnswerError(value) {
+  const normalizedAnswer = value.trim();
+
+  if (!normalizedAnswer) {
+    return "Enter a number before you submit.";
+  }
+
+  if (!/^-?\d+$/.test(normalizedAnswer)) {
+    return "Use numbers only for the banana answer.";
+  }
+
+  return "";
+}
+
 function useQuiz() {
   const navigate = useNavigate();
   const { username, handleAuthFailure, logout } = useAuth();
@@ -11,12 +28,20 @@ function useQuiz() {
   const [hasStarted, setHasStarted] = useState(false);
   const [bananaQuestion, setBananaQuestion] = useState(null);
   const [bananaAnswer, setBananaAnswer] = useState("");
+  const [bananaAnswerError, setBananaAnswerError] = useState("");
+  const [bananaAnswerTouched, setBananaAnswerTouched] = useState(false);
   const [dessertQuestion, setDessertQuestion] = useState(null);
   const [selectedAnswerId, setSelectedAnswerId] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [timeRemainingMs, setTimeRemainingMs] = useState(ROUND_TIME_LIMIT_MS);
+
+  const isBananaRound = roundNumber === 1;
+  const isRoundResolved = Boolean(feedback);
+  const activeQuestion = isBananaRound ? bananaQuestion : dessertQuestion;
+  const currentSource = bananaQuestion?.source || dessertQuestion?.source || "";
 
   const loadCurrentRound = useCallback(async () => {
     if (!hasStarted) {
@@ -25,21 +50,23 @@ function useQuiz() {
 
     setIsLoadingQuestion(true);
     setLoadError("");
+    setFeedback("");
+    setSelectedAnswerId(null);
+    setTimeRemainingMs(ROUND_TIME_LIMIT_MS);
 
     try {
-      if (roundNumber === 1) {
-        const data = await apiRequest("/banana", { auth: true });
+      if (isBananaRound) {
+        const data = await apiRequest("/banana");
         setBananaQuestion(data);
         setBananaAnswer("");
+        setBananaAnswerError("");
+        setBananaAnswerTouched(false);
         setDessertQuestion(null);
       } else {
-        const data = await apiRequest("/dessert-question/random", { auth: true });
+        const data = await apiRequest("/dessert-question/random");
         setDessertQuestion(data);
-        setSelectedAnswerId(null);
         setBananaQuestion(null);
       }
-
-      setFeedback("");
     } catch (error) {
       if (error instanceof AuthError) {
         handleAuthFailure();
@@ -48,14 +75,14 @@ function useQuiz() {
 
       console.error("Error loading round:", error);
       setLoadError(
-        roundNumber === 1
+        isBananaRound
           ? "We couldn't load the banana puzzle. Please try again."
           : "We couldn't load the dessert round. Please try again."
       );
     } finally {
       setIsLoadingQuestion(false);
     }
-  }, [handleAuthFailure, hasStarted, roundNumber]);
+  }, [handleAuthFailure, hasStarted, isBananaRound]);
 
   useEffect(() => {
     apiRequest("/session-user").catch(() => {
@@ -67,29 +94,86 @@ function useQuiz() {
     loadCurrentRound();
   }, [loadCurrentRound]);
 
+  useEffect(() => {
+    if (!hasStarted || isLoadingQuestion || loadError || isRoundResolved || !activeQuestion) {
+      return undefined;
+    }
+
+    const deadline = Date.now() + ROUND_TIME_LIMIT_MS;
+
+    const intervalId = window.setInterval(() => {
+      const remaining = Math.max(deadline - Date.now(), 0);
+      setTimeRemainingMs(remaining);
+
+      if (remaining > 0) {
+        return;
+      }
+
+      window.clearInterval(intervalId);
+
+      if (isBananaRound && bananaQuestion) {
+        setBananaAnswerTouched(true);
+        setBananaAnswerError("");
+        setFeedback(`Time's up. The correct answer is ${bananaQuestion.solution}.`);
+        return;
+      }
+
+      setFeedback("Time's up. Choose faster on the next round.");
+    }, 100);
+
+    return () => window.clearInterval(intervalId);
+  }, [
+    activeQuestion,
+    bananaQuestion,
+    hasStarted,
+    isBananaRound,
+    isLoadingQuestion,
+    isRoundResolved,
+    loadError,
+  ]);
+
+  const handleBananaAnswerChange = useCallback(
+    (value) => {
+      if (isRoundResolved) {
+        return;
+      }
+
+      setBananaAnswer(value);
+      const hasInteracted = bananaAnswerTouched || value.trim() !== "";
+
+      if (hasInteracted) {
+        setBananaAnswerTouched(true);
+        setBananaAnswerError(getBananaAnswerError(value));
+      }
+    },
+    [bananaAnswerTouched, isRoundResolved]
+  );
+
+  const handleBananaAnswerBlur = useCallback(() => {
+    if (isRoundResolved) {
+      return;
+    }
+
+    setBananaAnswerTouched(true);
+    setBananaAnswerError(getBananaAnswerError(bananaAnswer));
+  }, [bananaAnswer, isRoundResolved]);
+
   const handleBananaSubmit = useCallback(() => {
-    if (!bananaQuestion) {
+    if (!bananaQuestion || isRoundResolved || timeRemainingMs <= 0) {
       return;
     }
 
-    const normalizedAnswer = bananaAnswer.trim();
+    setBananaAnswerTouched(true);
+    const validationError = getBananaAnswerError(bananaAnswer);
 
-    if (normalizedAnswer === "") {
-      setFeedback("Enter an answer first.");
+    if (validationError) {
+      setBananaAnswerError(validationError);
+      setFeedback("");
       return;
     }
 
-    if (!/^-?\d+$/.test(normalizedAnswer)) {
-      setFeedback("Use numbers only for the banana answer.");
-      return;
-    }
-
-    const parsedAnswer = Number.parseInt(normalizedAnswer, 10);
-
-    if (Number.isNaN(parsedAnswer)) {
-      setFeedback("Use numbers only for the banana answer.");
-      return;
-    }
+    setBananaAnswerError("");
+    const parsedAnswer = Number.parseInt(bananaAnswer.trim(), 10);
 
     if (parsedAnswer === bananaQuestion.solution) {
       setScore((prevScore) => prevScore + 1);
@@ -97,7 +181,7 @@ function useQuiz() {
     } else {
       setFeedback(`Wrong answer. The correct answer is ${bananaQuestion.solution}.`);
     }
-  }, [bananaAnswer, bananaQuestion]);
+  }, [bananaAnswer, bananaQuestion, isRoundResolved, timeRemainingMs]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -105,7 +189,7 @@ function useQuiz() {
     }
 
     const handleKeyDown = (event) => {
-      if (!hasStarted || roundNumber !== 1 || event.key !== "Enter") {
+      if (!hasStarted || !isBananaRound || event.key !== "Enter") {
         return;
       }
 
@@ -116,11 +200,11 @@ function useQuiz() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleBananaSubmit, hasStarted, roundNumber]);
+  }, [handleBananaSubmit, hasStarted, isBananaRound]);
 
   const handleDessertAnswerClick = useCallback(
     (answer) => {
-      if (selectedAnswerId !== null) {
+      if (selectedAnswerId !== null || isRoundResolved || timeRemainingMs <= 0) {
         return;
       }
 
@@ -133,13 +217,12 @@ function useQuiz() {
         setFeedback("Wrong answer!");
       }
     },
-    [selectedAnswerId]
+    [isRoundResolved, selectedAnswerId, timeRemainingMs]
   );
 
   const handleNextRound = useCallback(() => {
-    if (roundNumber === 1) {
+    if (isBananaRound) {
       if (!feedback) {
-        setFeedback("Submit your Banana answer first.");
         return;
       }
 
@@ -147,8 +230,7 @@ function useQuiz() {
       return;
     }
 
-    if (selectedAnswerId === null) {
-      setFeedback("Choose an image answer first.");
+    if (!feedback && selectedAnswerId === null) {
       return;
     }
 
@@ -159,12 +241,15 @@ function useQuiz() {
         username,
       },
     });
-  }, [feedback, navigate, roundNumber, score, selectedAnswerId, username]);
+  }, [feedback, isBananaRound, navigate, score, selectedAnswerId, username]);
 
   const handleStartChallenge = useCallback(() => {
     setHasStarted(true);
+    setScore(0);
+    setRoundNumber(1);
     setFeedback("");
     setLoadError("");
+    setTimeRemainingMs(ROUND_TIME_LIMIT_MS);
   }, []);
 
   const handleLogout = useCallback(async () => {
@@ -177,12 +262,33 @@ function useQuiz() {
     }
   }, [logout]);
 
+  const timeLeft = Math.max(0, Math.ceil(timeRemainingMs / 1000));
+  const timeProgressPercent = Math.max(
+    0,
+    Math.min(100, (timeRemainingMs / ROUND_TIME_LIMIT_MS) * 100)
+  );
+  const roundProgressPercent = roundNumber === 1 ? 50 : 100;
+  const liveBananaError = bananaAnswerTouched ? bananaAnswerError : "";
+  const isBananaAnswerValid =
+    bananaAnswer.trim() !== "" && getBananaAnswerError(bananaAnswer) === "";
+  const isTimerLow = timeLeft <= 10;
+  const canSubmitBanana =
+    isBananaRound &&
+    !isLoadingQuestion &&
+    !loadError &&
+    !isRoundResolved &&
+    isBananaAnswerValid &&
+    timeRemainingMs > 0;
+  const canRetryRound = !isLoadingQuestion && Boolean(loadError);
+  const canAdvance = Boolean(feedback);
+
   return {
     score,
     roundNumber,
     hasStarted,
     bananaQuestion,
     bananaAnswer,
+    bananaAnswerError: liveBananaError,
     dessertQuestion,
     selectedAnswerId,
     feedback,
@@ -190,7 +296,18 @@ function useQuiz() {
     loadError,
     isLoggingOut,
     username,
-    setBananaAnswer,
+    timeLeft,
+    timeProgressPercent,
+    roundProgressPercent,
+    currentSource,
+    isBananaRound,
+    isRoundResolved,
+    isTimerLow,
+    canSubmitBanana,
+    canRetryRound,
+    canAdvance,
+    setBananaAnswer: handleBananaAnswerChange,
+    handleBananaAnswerBlur,
     loadCurrentRound,
     handleBananaSubmit,
     handleDessertAnswerClick,

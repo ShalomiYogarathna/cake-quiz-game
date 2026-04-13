@@ -239,6 +239,12 @@
   text-underline-offset: 8px;
 }
 
+.quiz-start-link-button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .quiz-start-howto {
   margin-top: 22px;
   max-width: 520px;
@@ -537,6 +543,11 @@
   box-shadow: 0 0 0 4px rgba(236, 106, 165, 0.12);
 }
 
+.answer-input-error-modern {
+  border-color: rgba(212, 88, 123, 0.95);
+  box-shadow: 0 0 0 4px rgba(212, 88, 123, 0.1);
+}
+
 .primary-btn-modern,
 .secondary-btn-modern {
   border: none;
@@ -574,6 +585,11 @@
   font-size: 1.04rem;
   font-weight: 700;
   text-align: center;
+}
+
+.quiz-feedback-muted-modern {
+  color: #ae7d92;
+  font-weight: 600;
 }
 
 .banana-feedback-modern {
@@ -630,6 +646,16 @@
   box-shadow: 0 8px 18px rgba(189, 133, 157, 0.12);
 }
 
+.quiz-status-card-modern {
+  margin: 0 auto 22px;
+  max-width: 640px;
+  padding: 20px 18px;
+  border-radius: 24px;
+  background: rgba(255, 248, 251, 0.82);
+  border: 1px solid rgba(230, 190, 210, 0.82);
+  box-shadow: 0 12px 24px rgba(189, 133, 157, 0.08);
+}
+
 .quiz-progress-wrap {
   margin: 0 auto 20px;
   max-width: 640px;
@@ -669,9 +695,32 @@
   background: linear-gradient(180deg, #ffd886, #f0b84e);
 }
 
+.quiz-progress-timer-low {
+  border-color: rgba(221, 119, 86, 0.6);
+  box-shadow: 0 0 0 4px rgba(241, 162, 88, 0.14);
+}
+
+.quiz-progress-fill-timer-low {
+  background: linear-gradient(180deg, #ffb685, #ef6c57);
+  animation: quizUrgencyPulse 0.9s ease-in-out infinite;
+}
+
 .quiz-badge-source-modern {
   background: rgba(255, 244, 221, 0.92);
   color: #9b6d37;
+}
+
+.banana-validation-modern {
+  margin: 0;
+  min-height: 24px;
+  color: #ae7d92;
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.banana-validation-error-modern {
+  color: #c24b73;
 }
 
 .banana-score-box-modern {
@@ -753,6 +802,18 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes quizUrgencyPulse {
+  0%,
+  100% {
+    filter: saturate(1);
+    transform: scaleX(1);
+  }
+  50% {
+    filter: saturate(1.08);
+    transform: scaleX(1.01);
   }
 }
 

@@ -1,25 +1,17 @@
-<<<<<<< HEAD
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/auth-context";
+import { logoutUser } from "../services/api";
 
-export function useAuth() {
+function useAuth() {
   const context = useContext(AuthContext);
+  const navigate = useNavigate();
 
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider.");
   }
 
-  return context;
-}
-=======
-import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { logoutUser } from "../services/api";
-import { clearAuthSession, getStoredUsername } from "../utils/auth";
-
-function useAuth() {
-  const navigate = useNavigate();
-  const username = getStoredUsername();
+  const { user, clearUser } = context;
 
   const redirectToLogin = useCallback(
     (authMessage) => {
@@ -32,14 +24,15 @@ function useAuth() {
   );
 
   const handleAuthFailure = useCallback(() => {
-    clearAuthSession();
+    clearUser();
     redirectToLogin("Session expired. Please log in again.");
-  }, [redirectToLogin]);
+  }, [clearUser, redirectToLogin]);
 
   const logout = useCallback(
     async (setError) => {
       try {
         await logoutUser();
+        clearUser();
         redirectToLogin("You have been logged out.");
         return true;
       } catch (error) {
@@ -52,15 +45,16 @@ function useAuth() {
         return false;
       }
     },
-    [redirectToLogin]
+    [clearUser, redirectToLogin]
   );
 
   return {
-    username,
+    ...context,
+    username: user?.username || "Player",
     handleAuthFailure,
     logout,
   };
 }
 
+export { useAuth };
 export default useAuth;
->>>>>>> codex/refactor-auth-modularity
