@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 =======
 import { apiRequest } from "../services/api";
 import {
+<<<<<<< HEAD
   normalizeEmail,
   validateEmail,
   validateStrongPassword,
@@ -13,6 +14,16 @@ import {
 
 const PASSWORD_RULE_TEXT =
   "Use 8+ characters with uppercase, lowercase, number, and special character.";
+=======
+  PASSWORD_RULE_TEXT,
+  USERNAME_RULE_TEXT,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+  sanitizeEmail,
+  sanitizeUsername,
+} from "../utils/validation";
+>>>>>>> codex/refactor-auth-modularity
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -34,6 +45,7 @@ function Register() {
     setEmailError("");
     setPasswordError("");
 
+<<<<<<< HEAD
     const normalizedEmail = normalizeEmail(email);
 
     if (!validateUsername(username)) {
@@ -50,12 +62,33 @@ function Register() {
 
     if (!validateStrongPassword(password)) {
       setPasswordError(PASSWORD_RULE_TEXT);
+=======
+    const normalizedUsername = sanitizeUsername(username);
+    const normalizedEmail = sanitizeEmail(email);
+    const usernameError = validateUsername(normalizedUsername);
+    const emailError = validateEmail(normalizedEmail);
+    const passwordError = validatePassword(password);
+
+    if (usernameError) {
+      setError(usernameError);
+      return;
+    }
+
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
+    if (passwordError) {
+      setError(passwordError);
+>>>>>>> codex/refactor-auth-modularity
       return;
     }
 
     try {
       const response = await fetch("http://localhost:8000/register", {
         method: "POST",
+<<<<<<< HEAD
 <<<<<<< Updated upstream
         headers: {
           "Content-Type": "application/json",
@@ -64,6 +97,9 @@ function Register() {
 =======
         body: { username: username.trim(), email: normalizedEmail, password },
 >>>>>>> Stashed changes
+=======
+        body: { username: normalizedUsername, email: normalizedEmail, password },
+>>>>>>> codex/refactor-auth-modularity
       });
 
       const data = await response.json();
@@ -143,6 +179,7 @@ function Register() {
                     type="text"
                     placeholder="Enter username"
                     value={username}
+<<<<<<< HEAD
                     onChange={(e) => {
                       setUsername(e.target.value);
                       setUsernameError(
@@ -155,6 +192,12 @@ function Register() {
                   {usernameError ? (
                     <small className="auth-field-help auth-field-help-error">{usernameError}</small>
                   ) : null}
+=======
+                    onChange={(e) => setUsername(e.target.value)}
+                    onBlur={(e) => setUsername(sanitizeUsername(e.target.value))}
+                  />
+                  <small className="auth-field-help">{USERNAME_RULE_TEXT}</small>
+>>>>>>> codex/refactor-auth-modularity
                 </div>
 
                 <div className="auth-field">
@@ -163,6 +206,7 @@ function Register() {
                     type="email"
                     placeholder="Enter email"
                     value={email}
+<<<<<<< HEAD
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setEmailError(
@@ -171,6 +215,10 @@ function Register() {
                           : ""
                       );
                     }}
+=======
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={(e) => setEmail(sanitizeEmail(e.target.value))}
+>>>>>>> codex/refactor-auth-modularity
                   />
                   {emailError ? (
                     <small className="auth-field-help auth-field-help-error">{emailError}</small>

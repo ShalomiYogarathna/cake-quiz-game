@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 <<<<<<< Updated upstream
@@ -155,6 +156,27 @@ function Result() {
     }
 >>>>>>> Stashed changes
   };
+=======
+import useResult from "../hooks/useResult";
+
+function Result() {
+  const {
+    score,
+    totalQuestions,
+    username,
+    numberFact,
+    isSavingScore,
+    saveMessage,
+    isLoadingFact,
+    factError,
+    isLoggingOut,
+    loadNumberFact,
+    handlePlayAgain,
+    handleViewDashboard,
+    handleBackToLogin,
+    handleLogout,
+  } = useResult();
+>>>>>>> codex/refactor-auth-modularity
 
   return (
     <div className="result-shell">

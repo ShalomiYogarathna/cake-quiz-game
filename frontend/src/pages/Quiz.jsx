@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 <<<<<<< Updated upstream
@@ -5,11 +6,15 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest, AuthError, logoutUser } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 >>>>>>> Stashed changes
+=======
+import useQuiz from "../hooks/useQuiz";
+>>>>>>> codex/refactor-auth-modularity
 import "./Quiz.css";
 
 const ROUND_TIME_LIMIT = 30;
 
 function Quiz() {
+<<<<<<< HEAD
   const [score, setScore] = useState(0);
   const [roundNumber, setRoundNumber] = useState(1);
   const [hasStarted, setHasStarted] = useState(false);
@@ -329,6 +334,29 @@ function Quiz() {
     setTimeLeft(ROUND_TIME_LIMIT);
 >>>>>>> Stashed changes
   };
+=======
+  const {
+    score,
+    roundNumber,
+    hasStarted,
+    bananaQuestion,
+    bananaAnswer,
+    dessertQuestion,
+    selectedAnswerId,
+    feedback,
+    isLoadingQuestion,
+    loadError,
+    isLoggingOut,
+    username,
+    setBananaAnswer,
+    loadCurrentRound,
+    handleBananaSubmit,
+    handleDessertAnswerClick,
+    handleNextRound,
+    handleStartChallenge,
+    handleLogout,
+  } = useQuiz();
+>>>>>>> codex/refactor-auth-modularity
 
   const progressPercent = hasStarted ? (roundNumber / 2) * 100 : 0;
   const timerPercent = (timeLeft / ROUND_TIME_LIMIT) * 100;

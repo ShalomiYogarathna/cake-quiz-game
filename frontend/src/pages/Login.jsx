@@ -4,9 +4,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 =======
 import { apiRequest, AuthError } from "../services/api";
+<<<<<<< HEAD
 import { useAuth } from "../hooks/useAuth";
 import { normalizeEmail, validateEmail } from "../utils/auth";
 >>>>>>> Stashed changes
+=======
+import { setAuthSession } from "../utils/auth";
+import { sanitizeEmail, validateEmail } from "../utils/validation";
+>>>>>>> codex/refactor-auth-modularity
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -32,12 +37,25 @@ useEffect(() => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+<<<<<<< HEAD
     setEmailError("");
 
     const normalizedEmail = normalizeEmail(email);
 
     if (!validateEmail(normalizedEmail)) {
       setEmailError("Enter a valid email address.");
+=======
+    const normalizedEmail = sanitizeEmail(email);
+    const emailError = validateEmail(normalizedEmail);
+
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Password is required.");
+>>>>>>> codex/refactor-auth-modularity
       return;
     }
 
@@ -46,11 +64,15 @@ useEffect(() => {
       const response = await fetch("http://localhost:8000/login"
 , {
         method: "POST",
+<<<<<<< HEAD
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({ email, password }),
+=======
+        body: { email: normalizedEmail, password },
+>>>>>>> codex/refactor-auth-modularity
       });
 
       const data = await response.json();
@@ -140,6 +162,7 @@ useEffect(() => {
                     type="email"
                     placeholder="Enter email"
                     value={email}
+<<<<<<< HEAD
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setEmailError(
@@ -148,6 +171,10 @@ useEffect(() => {
                           : ""
                       );
                     }}
+=======
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={(e) => setEmail(sanitizeEmail(e.target.value))}
+>>>>>>> codex/refactor-auth-modularity
                   />
                   {emailError ? <small className="auth-field-help auth-field-help-error">{emailError}</small> : null}
                 </div>

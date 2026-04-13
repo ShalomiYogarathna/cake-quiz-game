@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -118,6 +119,23 @@ function Dashboard() {
 
     return utcDate.toLocaleString();
   };
+=======
+import useDashboard from "../hooks/useDashboard";
+
+function Dashboard() {
+  const {
+    error,
+    isLoading,
+    isLoggingOut,
+    loadDashboard,
+    startQuiz,
+    handleLogout,
+    formatPlayedAt,
+    username,
+    stats,
+    history,
+  } = useDashboard();
+>>>>>>> codex/refactor-auth-modularity
 
   return (
     <div className="dashboard-shell">
@@ -139,7 +157,7 @@ function Dashboard() {
             <button
               type="button"
               className="dashboard-primary-button"
-              onClick={handleStartQuiz}
+              onClick={startQuiz}
             >
               Start Challenge
             </button>
