@@ -1,14 +1,26 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
 
+=======
+import { apiRequest, AuthError } from "../services/api";
+import { useAuth } from "../hooks/useAuth";
+import { normalizeEmail, validateEmail } from "../utils/auth";
+>>>>>>> Stashed changes
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+<<<<<<< Updated upstream
+=======
+  const { refreshAuth } = useAuth();
+  const authMessage = error || location.state?.authMessage || "";
+>>>>>>> Stashed changes
 
 useEffect(() => {
   if (location.state?.authMessage) {
@@ -20,8 +32,17 @@ useEffect(() => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!validateEmail(normalizedEmail)) {
+      setEmailError("Enter a valid email address.");
+      return;
+    }
 
     try {
+<<<<<<< Updated upstream
       const response = await fetch("http://localhost:8000/login"
 , {
         method: "POST",
@@ -41,6 +62,15 @@ useEffect(() => {
       localStorage.setItem("cake_quiz_token", data.token);
       localStorage.setItem("cake_quiz_username", data.username);
       navigate("/dashboard");
+=======
+      await apiRequest("/login", {
+        method: "POST",
+        body: { email: normalizedEmail, password },
+      });
+
+      await refreshAuth();
+      navigate(location.state?.from || "/dashboard", { replace: true });
+>>>>>>> Stashed changes
     } catch (err) {
       setError(err.message);
     }
@@ -110,8 +140,16 @@ useEffect(() => {
                     type="email"
                     placeholder="Enter email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailError(
+                        e.target.value && !validateEmail(e.target.value)
+                          ? "Enter a valid email address."
+                          : ""
+                      );
+                    }}
                   />
+                  {emailError ? <small className="auth-field-help auth-field-help-error">{emailError}</small> : null}
                 </div>
 
                 <div className="auth-field">

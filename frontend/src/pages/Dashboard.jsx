@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -7,6 +8,48 @@ function Dashboard() {
   const storedUsername = localStorage.getItem("cake_quiz_username") || "Player";
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState("");
+=======
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiRequest, AuthError, logoutUser } from "../services/api";
+import { useAuth } from "../hooks/useAuth";
+
+function Dashboard() {
+  const navigate = useNavigate();
+  const [dashboard, setDashboard] = useState(null);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { user, clearUser } = useAuth();
+
+  const handleAuthFailure = useCallback(() => {
+    clearUser();
+    navigate("/login", {
+      replace: true,
+      state: { authMessage: "Session expired. Please log in again." },
+    });
+  }, [clearUser, navigate]);
+
+  const loadDashboard = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      const data = await apiRequest("/dashboard");
+      setDashboard(data);
+      setError("");
+    } catch (fetchError) {
+      if (fetchError instanceof AuthError) {
+        handleAuthFailure();
+        return;
+      }
+
+      console.error("Error loading dashboard:", fetchError);
+      setError("We couldn't load your score history right now.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [handleAuthFailure]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -41,9 +84,30 @@ function Dashboard() {
     navigate("/quiz");
   };
 
+<<<<<<< Updated upstream
+=======
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      await logoutUser();
+      clearUser();
+      navigate("/login", {
+        replace: true,
+        state: { authMessage: "You have been logged out." },
+      });
+    } catch (logoutError) {
+      console.error("Error logging out:", logoutError);
+      setError("We couldn't log you out cleanly. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+>>>>>>> Stashed changes
   const stats = dashboard?.stats;
   const history = dashboard?.history || [];
-  const username = dashboard?.username || storedUsername;
+  const username = dashboard?.username || user?.username || "Player";
 
   const formatPlayedAt = (value) => {
     if (!value) {

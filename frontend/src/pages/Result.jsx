@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
+=======
+import { apiRequest, AuthError, logoutUser } from "../services/api";
+import { useAuth } from "../hooks/useAuth";
+>>>>>>> Stashed changes
 
 function Result() {
   const location = useLocation();
@@ -12,6 +17,21 @@ function Result() {
   const [numberFact, setNumberFact] = useState("");
   const [isSavingScore, setIsSavingScore] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+<<<<<<< Updated upstream
+=======
+  const [isLoadingFact, setIsLoadingFact] = useState(false);
+  const [factError, setFactError] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { clearUser } = useAuth();
+
+  const handleAuthFailure = useCallback(() => {
+    clearUser();
+    navigate("/login", {
+      replace: true,
+      state: { authMessage: "Session expired. Please log in again." },
+    });
+  }, [clearUser, navigate]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     if (!token) {
@@ -28,11 +48,15 @@ function Result() {
 
     fetch("http://localhost:8000/scores", {
       method: "POST",
+<<<<<<< Updated upstream
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+=======
+      body: {
+>>>>>>> Stashed changes
         score,
         total_questions: totalQuestions,
       }),
@@ -51,7 +75,31 @@ function Result() {
       .finally(() => {
         setIsSavingScore(false);
       });
+<<<<<<< Updated upstream
   }, [score, token, totalQuestions]);
+=======
+  }, [handleAuthFailure, score, totalQuestions]);
+
+  const loadNumberFact = useCallback(async () => {
+    setIsLoadingFact(true);
+    setFactError("");
+
+    try {
+      const data = await apiRequest(`/number-fact/${score}`);
+      setNumberFact(data.text || "");
+    } catch (error) {
+      if (error instanceof AuthError) {
+        handleAuthFailure();
+        return;
+      }
+
+      console.error("Error loading number fact:", error);
+      setFactError("We couldn't load the number fact right now.");
+    } finally {
+      setIsLoadingFact(false);
+    }
+  }, [handleAuthFailure, score]);
+>>>>>>> Stashed changes
 
   useEffect(() => {
     if (!token) {
@@ -86,7 +134,26 @@ function Result() {
     if (isSavingScore) {
       return;
     }
+<<<<<<< Updated upstream
     navigate("/login");
+=======
+
+    setIsLoggingOut(true);
+
+    try {
+      await logoutUser();
+      clearUser();
+      navigate("/login", {
+        replace: true,
+        state: { authMessage: "You have been logged out." },
+      });
+    } catch (error) {
+      console.error("Error logging out:", error);
+      setFactError("We couldn't log you out cleanly. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+>>>>>>> Stashed changes
   };
 
   return (
@@ -131,6 +198,20 @@ function Result() {
             {numberFact ? (
               <p className="result-message-fact">🍬 Sweet number fact: {numberFact}</p>
             ) : null}
+<<<<<<< Updated upstream
+=======
+            {factError ? <p className="result-message-fact">🍬 {factError}</p> : null}
+            {factError ? (
+              <button
+                type="button"
+                onClick={loadNumberFact}
+                className="result-link-button"
+              disabled={isLoadingFact}
+            >
+              Retry Number Fact
+            </button>
+          ) : null}
+>>>>>>> Stashed changes
           </div>
 
           <div className="result-actions">

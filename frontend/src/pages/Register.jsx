@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
+=======
+import { apiRequest } from "../services/api";
+import {
+  normalizeEmail,
+  validateEmail,
+  validateStrongPassword,
+  validateUsername,
+} from "../utils/auth";
+>>>>>>> Stashed changes
 
 const PASSWORD_RULE_TEXT =
   "Use 8+ characters with uppercase, lowercase, number, and special character.";
-
-function isStrongPassword(password) {
-  return (
-    password.length >= 8 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /\d/.test(password) &&
-    /[^A-Za-z0-9]/.test(password)
-  );
-}
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -21,25 +21,49 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setUsernameError("");
+    setEmailError("");
+    setPasswordError("");
 
-    if (!isStrongPassword(password)) {
-      setError(PASSWORD_RULE_TEXT);
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!validateUsername(username)) {
+      setUsernameError(
+        "Use 3-20 characters with letters, numbers, spaces, underscores, or hyphens."
+      );
+      return;
+    }
+
+    if (!validateEmail(normalizedEmail)) {
+      setEmailError("Enter a valid email address.");
+      return;
+    }
+
+    if (!validateStrongPassword(password)) {
+      setPasswordError(PASSWORD_RULE_TEXT);
       return;
     }
 
     try {
       const response = await fetch("http://localhost:8000/register", {
         method: "POST",
+<<<<<<< Updated upstream
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, email, password }),
+=======
+        body: { username: username.trim(), email: normalizedEmail, password },
+>>>>>>> Stashed changes
       });
 
       const data = await response.json();
@@ -119,8 +143,18 @@ function Register() {
                     type="text"
                     placeholder="Enter username"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setUsernameError(
+                        e.target.value && !validateUsername(e.target.value)
+                          ? "Use 3-20 characters with letters, numbers, spaces, underscores, or hyphens."
+                          : ""
+                      );
+                    }}
                   />
+                  {usernameError ? (
+                    <small className="auth-field-help auth-field-help-error">{usernameError}</small>
+                  ) : null}
                 </div>
 
                 <div className="auth-field">
@@ -129,8 +163,18 @@ function Register() {
                     type="email"
                     placeholder="Enter email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailError(
+                        e.target.value && !validateEmail(e.target.value)
+                          ? "Enter a valid email address."
+                          : ""
+                      );
+                    }}
                   />
+                  {emailError ? (
+                    <small className="auth-field-help auth-field-help-error">{emailError}</small>
+                  ) : null}
                 </div>
 
                 <div className="auth-field">
@@ -140,7 +184,14 @@ function Register() {
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setPasswordError(
+                          e.target.value && !validateStrongPassword(e.target.value)
+                            ? PASSWORD_RULE_TEXT
+                            : ""
+                        );
+                      }}
                     />
                     <button
                       className="auth-password-toggle"
@@ -152,6 +203,9 @@ function Register() {
                     </button>
                   </div>
                   <small className="auth-field-help">{PASSWORD_RULE_TEXT}</small>
+                  {passwordError ? (
+                    <small className="auth-field-help auth-field-help-error">{passwordError}</small>
+                  ) : null}
                 </div>
 
                 <button className="auth-submit" type="submit">

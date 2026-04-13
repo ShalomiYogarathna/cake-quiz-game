@@ -1,32 +1,30 @@
 import random
 import re
-import secrets
 from typing import Optional
 
 import requests
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
-from fastapi import Request
+from starlette.middleware.sessions import SessionMiddleware
 from database import (
     create_scores_table,
-    create_tokens_table,
     create_user,
     create_users_table,
-    delete_token,
-    get_email_by_token,
     get_score_summary_by_user,
     get_scores_by_user,
     get_user_by_email,
     save_score,
+<<<<<<< Updated upstream
     save_token,
+=======
+    update_user_password,
+>>>>>>> Stashed changes
 )
 
 app = FastAPI()
 create_users_table()
 create_scores_table()
-create_tokens_table()
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,15 +54,47 @@ class ScoreRequest(BaseModel):
     score: int
     total_questions: int
 
-USERS = {}
-TOKENS = {}
-
 MEALDB_DESSERTS_URL = "https://www.themealdb.com/api/json/v1/1/filter.php?c=Dessert"
 NUMBERS_API_URL = "http://numbersapi.com/{number}?json"
 PASSWORD_RULE_TEXT = (
     "Password must be at least 8 characters and include an uppercase letter, "
     "a lowercase letter, a number, and a special character."
 )
+<<<<<<< Updated upstream
+=======
+PASSWORD_HASH_PREFIX = "pbkdf2_sha256"
+EMAIL_RULE_TEXT = "Enter a valid email address."
+USERNAME_RULE_TEXT = (
+    "Username must be 3-20 characters and use only letters, numbers, spaces, underscores, or hyphens."
+)
+BANANA_FALLBACK_QUESTION = {
+    "question": "https://marcconrad.com/uob/banana/example.png",
+    "solution": 6,
+    "source": "Local fallback",
+}
+FALLBACK_DESSERTS = [
+    {
+        "idMeal": "fallback-1",
+        "strMeal": "Chocolate Cake",
+        "strMealThumb": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+        "idMeal": "fallback-2",
+        "strMeal": "Strawberry Tart",
+        "strMealThumb": "https://images.unsplash.com/photo-1464306076886-da185f6a9d05?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+        "idMeal": "fallback-3",
+        "strMeal": "Cupcake",
+        "strMealThumb": "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+        "idMeal": "fallback-4",
+        "strMeal": "Lemon Cheesecake",
+        "strMealThumb": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=900&q=80",
+    },
+]
+>>>>>>> Stashed changes
 
 
 def is_strong_password(password: str) -> bool:
@@ -77,6 +107,7 @@ def is_strong_password(password: str) -> bool:
     )
 
 
+<<<<<<< Updated upstream
 def get_current_user(authorization: Optional[str]):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing token")
@@ -84,9 +115,48 @@ def get_current_user(authorization: Optional[str]):
     token = authorization.replace("Bearer ", "", 1)
     email = TOKENS.get(token) or get_email_by_token(token)
 
+=======
+def is_valid_email(email: str) -> bool:
+    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email.strip()))
+
+
+def is_valid_username(username: str) -> bool:
+    cleaned_username = username.strip()
+    return bool(
+        3 <= len(cleaned_username) <= 20
+        and re.fullmatch(r"[A-Za-z0-9 _-]+", cleaned_username)
+    )
+
+
+def hash_password(password: str) -> str:
+    salt = os.urandom(16)
+    derived_key = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 390000)
+    encoded_salt = base64.b64encode(salt).decode("utf-8")
+    encoded_key = base64.b64encode(derived_key).decode("utf-8")
+    return f"{PASSWORD_HASH_PREFIX}${encoded_salt}${encoded_key}"
+
+
+def verify_password(password: str, stored_password: str) -> bool:
+    try:
+        algorithm, encoded_salt, encoded_key = stored_password.split("$", 2)
+    except ValueError:
+        return hmac.compare_digest(stored_password, password)
+
+    if algorithm != PASSWORD_HASH_PREFIX:
+        return False
+
+    salt = base64.b64decode(encoded_salt.encode("utf-8"))
+    expected_key = base64.b64decode(encoded_key.encode("utf-8"))
+    candidate_key = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 390000)
+    return hmac.compare_digest(candidate_key, expected_key)
+
+
+def get_current_user(request: Request):
+    email = request.session.get("user_email")
+>>>>>>> Stashed changes
 
     if not email:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="No active session")
 
     user = get_user_by_email(email)
 
@@ -108,7 +178,16 @@ def home():
 
 @app.post("/register")
 def register_user(payload: RegisterRequest):
-    existing_user = get_user_by_email(payload.email)
+    username = payload.username.strip()
+    email = payload.email.strip().lower()
+
+    if not is_valid_username(username):
+        raise HTTPException(status_code=400, detail=USERNAME_RULE_TEXT)
+
+    if not is_valid_email(email):
+        raise HTTPException(status_code=400, detail=EMAIL_RULE_TEXT)
+
+    existing_user = get_user_by_email(email)
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -116,32 +195,48 @@ def register_user(payload: RegisterRequest):
     if not is_strong_password(payload.password):
         raise HTTPException(status_code=400, detail=PASSWORD_RULE_TEXT)
 
+<<<<<<< Updated upstream
     create_user(payload.username, payload.email, payload.password)
+=======
+    create_user(username, email, hash_password(payload.password))
+>>>>>>> Stashed changes
 
     return {"message": "Registration successful"}
 
 @app.post("/login")
 def login_user(payload: LoginRequest, request: Request):
-    user = get_user_by_email(payload.email)
+    email = payload.email.strip().lower()
+
+    if not is_valid_email(email):
+        raise HTTPException(status_code=400, detail=EMAIL_RULE_TEXT)
+
+    user = get_user_by_email(email)
 
     if not user or user[3] != payload.password:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+<<<<<<< Updated upstream
     token = secrets.token_hex(16)
     TOKENS[token] = payload.email
     save_token(token, payload.email)
     request.session["user_email"] = payload.email
+=======
+    if not user[3].startswith(f"{PASSWORD_HASH_PREFIX}$"):
+        update_user_password(email, hash_password(payload.password))
+
+    request.session["user_email"] = email
+>>>>>>> Stashed changes
 
 
     return {
-        "token": token,
         "username": user[1],
+        "email": user[2],
     }
 
 
 @app.get("/me")
-def get_me(authorization: Optional[str] = Header(default=None)):
-    user = get_current_user(authorization)
+def get_me(request: Request):
+    user = get_current_user(request)
     return {
         "username": user["username"],
         "email": user["email"],
@@ -149,23 +244,50 @@ def get_me(authorization: Optional[str] = Header(default=None)):
 
 
 @app.get("/banana")
+<<<<<<< Updated upstream
 def get_banana_question(authorization: Optional[str] = Header(default=None)):
     get_current_user(authorization)
     response = requests.get("https://marcconrad.com/uob/banana/api.php", timeout=10)
     response.raise_for_status()
     return response.json()
+=======
+def get_banana_question(request: Request):
+    get_current_user(request)
+    # External interoperability source: University of Bedfordshire Banana API.
+    try:
+        response = requests.get("https://marcconrad.com/uob/banana/api.php", timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        data["source"] = "Banana API"
+        return data
+    except requests.RequestException:
+        return BANANA_FALLBACK_QUESTION
+>>>>>>> Stashed changes
 
 
 @app.get("/dessert-question/random")
-def get_random_dessert_question(authorization: Optional[str] = Header(default=None)):
-    get_current_user(authorization)
+def get_random_dessert_question(request: Request):
+    get_current_user(request)
 
+<<<<<<< Updated upstream
     response = requests.get(MEALDB_DESSERTS_URL, timeout=10)
     response.raise_for_status()
     meals = response.json().get("meals") or []
+=======
+    # External interoperability source: TheMealDB dessert catalog API.
+    try:
+        response = requests.get(MEALDB_DESSERTS_URL, timeout=10)
+        response.raise_for_status()
+        meals = response.json().get("meals") or []
+        source = "TheMealDB"
+    except requests.RequestException:
+        meals = FALLBACK_DESSERTS
+        source = "Local fallback"
+>>>>>>> Stashed changes
 
     if len(meals) < 4:
-        raise HTTPException(status_code=502, detail="Not enough dessert options available")
+        meals = FALLBACK_DESSERTS
+        source = "Local fallback"
 
     selected_meals = random.sample(meals, 4)
     correct_meal = random.choice(selected_meals)
@@ -185,7 +307,7 @@ def get_random_dessert_question(authorization: Optional[str] = Header(default=No
     return {
         "question": f"Which dessert image matches {correct_meal['strMeal']}?",
         "answers": answers,
-        "source": "TheMealDB",
+        "source": source,
     }
 
 @app.get("/session-user")
@@ -208,17 +330,20 @@ def get_session_user(request: Request):
 @app.post("/scores")
 def create_score(
     payload: ScoreRequest,
-    authorization: Optional[str] = Header(default=None),
+    request: Request,
 ):
-    user = get_current_user(authorization)
+    user = get_current_user(request)
+
+    if payload.score < 0 or payload.total_questions <= 0 or payload.score > payload.total_questions:
+        raise HTTPException(status_code=400, detail="Score data is invalid.")
 
     save_score(user["id"], payload.score, payload.total_questions)
 
     return {"message": "Score saved successfully"}
 
 @app.get("/scores")
-def read_scores(authorization: Optional[str] = Header(default=None)):
-    user = get_current_user(authorization)
+def read_scores(request: Request):
+    user = get_current_user(request)
     scores = get_scores_by_user(user["id"])
 
     return [
@@ -233,8 +358,8 @@ def read_scores(authorization: Optional[str] = Header(default=None)):
 
 
 @app.get("/dashboard")
-def read_dashboard(authorization: Optional[str] = Header(default=None)):
-    user = get_current_user(authorization)
+def read_dashboard(request: Request):
+    user = get_current_user(request)
     summary = get_score_summary_by_user(user["id"])
     scores = get_scores_by_user(user["id"])
 
@@ -264,8 +389,8 @@ def read_dashboard(authorization: Optional[str] = Header(default=None)):
 
 
 @app.get("/number-fact/{number}")
-def get_number_fact(number: int, authorization: Optional[str] = Header(default=None)):
-    get_current_user(authorization)
+def get_number_fact(number: int, request: Request):
+    get_current_user(request)
 
     try:
         response = requests.get(NUMBERS_API_URL.format(number=number), timeout=10)
@@ -282,14 +407,6 @@ def get_number_fact(number: int, authorization: Optional[str] = Header(default=N
         }
 
 @app.post("/logout")
-def logout_user(
-    request: Request,
-    authorization: Optional[str] = Header(default=None),
-):
-    if authorization and authorization.startswith("Bearer "):
-        token = authorization.replace("Bearer ", "", 1)
-        TOKENS.pop(token, None)
-        delete_token(token)
-
+def logout_user(request: Request):
     request.session.clear()
     return {"message": "Logged out successfully"}

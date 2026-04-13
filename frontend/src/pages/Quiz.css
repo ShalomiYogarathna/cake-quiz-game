@@ -616,6 +616,50 @@
   box-shadow: 0 8px 18px rgba(189, 133, 157, 0.12);
 }
 
+.quiz-progress-wrap {
+  margin: 0 auto 20px;
+  max-width: 640px;
+}
+
+.quiz-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #92586f;
+  font-weight: 700;
+}
+
+.quiz-progress-bar {
+  overflow: hidden;
+  height: 14px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: rgba(255, 244, 249, 0.92);
+  border: 1px solid rgba(230, 190, 210, 0.82);
+}
+
+.quiz-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, #ff9fc4, #eb5d98);
+  transition: width 0.35s ease;
+}
+
+.quiz-progress-timer {
+  background: rgba(255, 244, 221, 0.92);
+  border-color: rgba(228, 196, 128, 0.75);
+}
+
+.quiz-progress-fill-timer {
+  background: linear-gradient(180deg, #ffd886, #f0b84e);
+}
+
+.quiz-badge-source-modern {
+  background: rgba(255, 244, 221, 0.92);
+  color: #9b6d37;
+}
+
 .banana-score-box-modern {
   margin-top: 4px;
 }
