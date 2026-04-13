@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiRequest, AuthError, logoutUser } from "../services/api";
+import { clearAuthSession, getStoredUsername } from "../utils/auth";
 import "./Quiz.css";
 
 function Quiz() {
@@ -11,101 +13,106 @@ function Quiz() {
   const [dessertQuestion, setDessertQuestion] = useState(null);
   const [selectedAnswerId, setSelectedAnswerId] = useState(null);
   const [feedback, setFeedback] = useState("");
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem("cake_quiz_token");
-  const username = localStorage.getItem("cake_quiz_username");
+  const username = getStoredUsername();
 
-  const handleAuthFailure = () => {
-  localStorage.removeItem("cake_quiz_token");
-  localStorage.removeItem("cake_quiz_username");
-  navigate("/login", {
-    state: { authMessage: "Session expired. Please log in again." },
-  });
-};
+  const handleAuthFailure = useCallback(() => {
+    clearAuthSession();
+    navigate("/login", {
+      replace: true,
+      state: { authMessage: "Session expired. Please log in again." },
+    });
+  }, [navigate]);
 
-
-    useEffect(() => {
-    if (!token) {
-      navigate("/login");
+  const loadCurrentRound = useCallback(async () => {
+    if (!hasStarted) {
       return;
     }
 
-    fetch("http://localhost:8000/session-user", {
-      credentials: "include",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("No active session");
-        }
-        return response.json();
-      })
-            .catch(() => {
-        handleAuthFailure();
-      });
+    setIsLoadingQuestion(true);
+    setLoadError("");
 
-  }, [navigate, token]);
-
-
-  useEffect(() => {
-    if (!token || !hasStarted) {
-      return;
-    }
-
-    if (roundNumber === 1) {
-      fetch("http://localhost:8000/banana", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(response.status === 401 ? "AUTH" : "BANANA_LOAD");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setBananaQuestion(data);
-          setBananaAnswer("");
-          setFeedback("");
-        })
-        .catch((error) => {
-          if (error.message === "AUTH") {
-            handleAuthFailure();
-            return;
-          }
-          console.error("Error loading Banana round:", error);
-          setFeedback("We couldn't load the banana puzzle. Please try again.");
-        });
-      return;
-    }
-
-    fetch("http://localhost:8000/dessert-question/random", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(response.status === 401 ? "AUTH" : "DESSERT_LOAD");
-        }
-        return response.json();
-      })
-      .then((data) => {
+    try {
+      if (roundNumber === 1) {
+        const data = await apiRequest("/banana", { auth: true });
+        setBananaQuestion(data);
+        setBananaAnswer("");
+        setDessertQuestion(null);
+      } else {
+        const data = await apiRequest("/dessert-question/random", { auth: true });
         setDessertQuestion(data);
         setSelectedAnswerId(null);
-        setFeedback("");
-      })
-      .catch((error) => {
-        if (error.message === "AUTH") {
-          handleAuthFailure();
-          return;
-        }
-        console.error("Error loading dessert round:", error);
-        setFeedback("We couldn't load the dessert round. Please try again.");
-      });
-  }, [hasStarted, roundNumber, token]);
+        setBananaQuestion(null);
+      }
 
-  const handleBananaSubmit = () => {
+      setFeedback("");
+    } catch (error) {
+      if (error instanceof AuthError) {
+        handleAuthFailure();
+        return;
+      }
+
+      console.error("Error loading round:", error);
+      setLoadError(
+        roundNumber === 1
+          ? "We couldn't load the banana puzzle. Please try again."
+          : "We couldn't load the dessert round. Please try again."
+      );
+    } finally {
+      setIsLoadingQuestion(false);
+    }
+  }, [handleAuthFailure, hasStarted, roundNumber]);
+
+  useEffect(() => {
+    apiRequest("/session-user").catch(() => {
+      handleAuthFailure();
+    });
+  }, [handleAuthFailure]);
+
+  useEffect(() => {
+    loadCurrentRound();
+  }, [loadCurrentRound]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (!hasStarted || roundNumber !== 1 || event.key !== "Enter") {
+        return;
+      }
+
+      if (document.activeElement?.tagName === "INPUT") {
+        handleBananaSubmit();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleBananaSubmit, hasStarted, roundNumber]);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      await logoutUser();
+      navigate("/login", {
+        replace: true,
+        state: { authMessage: "You have been logged out." },
+      });
+    } catch (error) {
+      console.error("Error logging out:", error);
+      setLoadError("We couldn't log you out cleanly. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const handleBananaSubmit = useCallback(() => {
     if (!bananaQuestion) {
       return;
     }
@@ -117,13 +124,18 @@ function Quiz() {
 
     const parsedAnswer = Number.parseInt(bananaAnswer, 10);
 
+    if (Number.isNaN(parsedAnswer)) {
+      setFeedback("Use numbers only for the banana answer.");
+      return;
+    }
+
     if (parsedAnswer === bananaQuestion.solution) {
       setScore((prevScore) => prevScore + 1);
       setFeedback("Correct answer!");
     } else {
       setFeedback(`Wrong answer. The correct answer is ${bananaQuestion.solution}.`);
     }
-  };
+  }, [bananaAnswer, bananaQuestion]);
 
   const handleDessertAnswerClick = (answer) => {
     if (selectedAnswerId !== null) {
@@ -168,6 +180,7 @@ function Quiz() {
   const handleStartChallenge = () => {
     setHasStarted(true);
     setFeedback("");
+    setLoadError("");
   };
 
   return (
@@ -253,90 +266,116 @@ function Quiz() {
           </span>
         </div>
 
-        {roundNumber === 1 && bananaQuestion ? (
-          <>
-            <div className="quiz-feature-modern">
-              <p className="quiz-subtitle-modern">
-                🍌 Solve this banana puzzle to unlock your next sweet order!
-              </p>
+        <div className="quiz-actions-modern">
+          <button
+            type="button"
+            className="secondary-btn-modern"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? "Logging Out..." : "Log Out"}
+          </button>
+        </div>
 
-              <div className="banana-layout-modern">
-                <div className="puzzle-box-modern banana-puzzle-box-modern">
-                  <div className="puzzle-frame-modern">
-                    <img
-                      src={bananaQuestion.question}
-                      alt="Banana API Puzzle"
-                      className="puzzle-image-modern"
-                    />
-                  </div>
-                </div>
-
-                <div className="banana-controls-modern">
-                  <div className="banana-controls-card-modern">
-                    <p className="banana-controls-title-modern">Sweet Answer Box</p>
-
-                    <input
-                      type="number"
-                      placeholder="Enter numeric answer"
-                      value={bananaAnswer}
-                      onChange={(e) => setBananaAnswer(e.target.value)}
-                      className="answer-input-modern"
-                    />
-
-                    <button
-                      type="button"
-                      className="primary-btn-modern"
-                      onClick={handleBananaSubmit}
-                    >
-                      Submit Banana Answer
-                    </button>
-
-                    {feedback ? <p className="quiz-feedback-modern banana-feedback-modern">{feedback}</p> : null}
-
-                    <button
-                      type="button"
-                      className="secondary-btn-modern banana-next-btn-modern"
-                      onClick={handleNextRound}
-                    >
-                      🧁 Go To Dessert Round
-                    </button>
-
-                    <div className="score-box-modern banana-score-box-modern">Score: {score}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
+        {isLoadingQuestion ? (
+          <p className="quiz-feedback-modern">Loading your next sweet challenge...</p>
         ) : null}
 
-        {roundNumber === 2 && dessertQuestion ? (
-          <>
-            <div className="quiz-feature-modern">
-              <p className="quiz-subtitle-modern">🧁 {dessertQuestion.question}</p>
+        {loadError ? (
+          <div className="quiz-actions-modern quiz-actions-stack-modern">
+            <p className="quiz-feedback-modern">{loadError}</p>
+            <button type="button" className="secondary-btn-modern" onClick={loadCurrentRound}>
+              Retry Round Load
+            </button>
+          </div>
+        ) : null}
 
-              <div className="puzzle-box-modern">
-                <div className="cake-grid-modern">
-                  {dessertQuestion.answers.map((answer) => (
-                    <button
-                      key={answer.id}
-                      type="button"
-                      className={`cake-option-modern${
-                        selectedAnswerId === answer.id ? " cake-option-selected-modern" : ""
-                      }`}
-                      onClick={() => handleDessertAnswerClick(answer)}
-                    >
-                      <img
-                        src={answer.image}
-                        alt={answer.label}
-                        className="cake-option-image-modern"
-                      />
-                      <span className="cake-option-label-modern">{answer.label}</span>
-                    </button>
-                  ))}
+        {roundNumber === 1 && bananaQuestion && !isLoadingQuestion ? (
+          <div className="quiz-feature-modern">
+            <p className="quiz-subtitle-modern">
+              🍌 Solve this banana puzzle to unlock your next sweet order!
+            </p>
+
+            <div className="banana-layout-modern">
+              <div className="puzzle-box-modern banana-puzzle-box-modern">
+                <div className="puzzle-frame-modern">
+                  <img
+                    // External interoperability source: University Banana API puzzle image.
+                    src={bananaQuestion.question}
+                    alt="Banana API Puzzle"
+                    className="puzzle-image-modern"
+                  />
+                </div>
+              </div>
+
+              <div className="banana-controls-modern">
+                <div className="banana-controls-card-modern">
+                  <p className="banana-controls-title-modern">Sweet Answer Box</p>
+
+                  <input
+                    type="number"
+                    placeholder="Enter numeric answer"
+                    value={bananaAnswer}
+                    onChange={(event) => setBananaAnswer(event.target.value)}
+                    className="answer-input-modern"
+                  />
+
+                  <button
+                    type="button"
+                    className="primary-btn-modern"
+                    onClick={handleBananaSubmit}
+                    disabled={isLoadingQuestion}
+                  >
+                    Submit Banana Answer
+                  </button>
+
+                  {feedback ? (
+                    <p className="quiz-feedback-modern banana-feedback-modern">{feedback}</p>
+                  ) : null}
+
+                  <button
+                    type="button"
+                    className="secondary-btn-modern banana-next-btn-modern"
+                    onClick={handleNextRound}
+                    disabled={isLoadingQuestion}
+                  >
+                    🧁 Go To Dessert Round
+                  </button>
+
+                  <div className="score-box-modern banana-score-box-modern">Score: {score}</div>
                 </div>
               </div>
             </div>
-          </>
+          </div>
+        ) : null}
+
+        {roundNumber === 2 && dessertQuestion && !isLoadingQuestion ? (
+          <div className="quiz-feature-modern">
+            <p className="quiz-subtitle-modern">🧁 {dessertQuestion.question}</p>
+
+            <div className="puzzle-box-modern">
+              <div className="cake-grid-modern">
+                {dessertQuestion.answers.map((answer) => (
+                  <button
+                    key={answer.id}
+                    type="button"
+                    className={`cake-option-modern${
+                      selectedAnswerId === answer.id ? " cake-option-selected-modern" : ""
+                    }`}
+                    onClick={() => handleDessertAnswerClick(answer)}
+                    disabled={isLoadingQuestion}
+                  >
+                    <img
+                      src={answer.image}
+                      alt={answer.label}
+                      className="cake-option-image-modern"
+                    />
+                    <span className="cake-option-label-modern">{answer.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         ) : null}
 
         {roundNumber === 2 && feedback ? <p className="quiz-feedback-modern">{feedback}</p> : null}
@@ -344,7 +383,12 @@ function Quiz() {
         {roundNumber === 2 ? (
           <>
             <div className="quiz-actions-modern">
-              <button type="button" className="secondary-btn-modern" onClick={handleNextRound}>
+              <button
+                type="button"
+                className="secondary-btn-modern"
+                onClick={handleNextRound}
+                disabled={isLoadingQuestion}
+              >
                 🎀 Finish Quiz
               </button>
             </div>

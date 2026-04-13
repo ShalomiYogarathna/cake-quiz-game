@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-
+import { apiRequest, AuthError } from "../services/api";
+import { setAuthSession } from "../utils/auth";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -9,40 +10,26 @@ function Login() {
   const [error, setError] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+  const authMessage = error || location.state?.authMessage || "";
 
-useEffect(() => {
-  if (location.state?.authMessage) {
-    setError(location.state.authMessage);
-  }
-}, [location.state]);
-
-  
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/login"
-, {
+      const data = await apiRequest("/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
+        body: { email, password },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Login failed");
-      }
-
-      localStorage.setItem("cake_quiz_token", data.token);
-      localStorage.setItem("cake_quiz_username", data.username);
-      navigate("/dashboard");
+      setAuthSession(data.token, data.username);
+      navigate(location.state?.from || "/dashboard", { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError(
+        err instanceof AuthError || err instanceof Error
+          ? err.message
+          : "Login failed"
+      );
     }
   };
 
@@ -64,6 +51,7 @@ useEffect(() => {
         <div className="auth-top-image-wrap">
           <img
             className="auth-top-image"
+            // Decorative image source: Unsplash.
             src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80"
             alt="Pink cake decoration"
           />
@@ -139,7 +127,7 @@ useEffect(() => {
                 </button>
               </form>
 
-              {error ? <p className="auth-error">{error}</p> : null}
+              {authMessage ? <p className="auth-error">{authMessage}</p> : null}
 
               <p className="auth-footer">
                 Don&apos;t have an account? <Link to="/register">Sign Up</Link>
