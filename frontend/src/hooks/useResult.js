@@ -18,33 +18,35 @@ function useResult() {
   const [factError, setFactError] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  const saveScore = useCallback(async () => {
+    setIsSavingScore(true);
+    setSaveMessage("Saving your score...");
+
+    try {
+      await apiRequest("/scores", {
+        method: "POST",
+        body: {
+          score,
+          total_questions: totalQuestions,
+        },
+      });
+      setSaveMessage("Score saved to your dashboard.");
+    } catch (error) {
+      console.error("Error saving score:", error);
+      setSaveMessage("We couldn't save this score. Please try this round again.");
+    } finally {
+      setIsSavingScore(false);
+    }
+  }, [score, totalQuestions]);
+
   useEffect(() => {
     if (hasSavedScore.current) {
       return;
     }
 
     hasSavedScore.current = true;
-    setIsSavingScore(true);
-    setSaveMessage("Saving your score...");
-
-    apiRequest("/scores", {
-      method: "POST",
-      body: {
-        score,
-        total_questions: totalQuestions,
-      },
-    })
-      .then(() => {
-        setSaveMessage("Score saved to your dashboard.");
-      })
-      .catch((error) => {
-        console.error("Error saving score:", error);
-        setSaveMessage("We couldn't save this score. Please try this round again.");
-      })
-      .finally(() => {
-        setIsSavingScore(false);
-      });
-  }, [score, totalQuestions]);
+    saveScore();
+  }, [saveScore]);
 
   const loadNumberFact = useCallback(async () => {
     setIsLoadingFact(true);

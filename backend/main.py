@@ -33,6 +33,8 @@ from database import (
 # - Score facts are requested from Numbers API:
 #   http://numbersapi.com/
 # - Fallback dessert image URLs below use publicly hosted Unsplash images.
+# - Some explanatory source comments in this file were generated with AI assistance
+#   and then reviewed for this project.
 
 SESSION_MAX_AGE_SECONDS = 60 * 60 * 8
 SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "cake-shop-secret-key")
@@ -109,16 +111,12 @@ def is_strong_password(password: str) -> bool:
     )
 
 
-def is_valid_email(email: str) -> bool:
-    return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email.strip()))
+def normalize_email(email: str) -> str:
+    return email.strip().lower()
 
 
-def is_valid_username(username: str) -> bool:
-    cleaned_username = username.strip()
-    return bool(
-        3 <= len(cleaned_username) <= 20
-        and re.fullmatch(r"[A-Za-z0-9_ ]+", cleaned_username)
-    )
+def normalize_username(username: str) -> str:
+    return username.strip()
 
 
 @app.exception_handler(RequestValidationError)
@@ -199,7 +197,7 @@ class RegisterRequest(BaseModel):
     @field_validator("username")
     @classmethod
     def validate_username(cls, value: str) -> str:
-        normalized_value = value.strip()
+        normalized_value = normalize_username(value)
 
         if not re.fullmatch(r"[A-Za-z0-9_ ]{3,20}", normalized_value):
             raise ValueError(USERNAME_RULE_TEXT)
@@ -209,7 +207,7 @@ class RegisterRequest(BaseModel):
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str) -> str:
-        normalized_value = value.strip().lower()
+        normalized_value = normalize_email(value)
 
         if not re.fullmatch(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", normalized_value):
             raise ValueError(EMAIL_RULE_TEXT)
@@ -232,7 +230,7 @@ class LoginRequest(BaseModel):
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str) -> str:
-        normalized_value = value.strip().lower()
+        normalized_value = normalize_email(value)
 
         if not re.fullmatch(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", normalized_value):
             raise ValueError(EMAIL_RULE_TEXT)
@@ -266,21 +264,17 @@ class ScoreRequest(BaseModel):
         return self
 
 
+# Health-check style root endpoint used to confirm the API is up.
 @app.get("/")
 def home():
     return {"message": "Cake Shop Banana Challenge API is running"}
 
 
+# Registration controller: validates input and creates a new user account.
 @app.post("/register")
 def register_user(payload: RegisterRequest):
-    username = payload.username.strip()
-    email = payload.email.strip().lower()
-
-    if not is_valid_username(username):
-        raise HTTPException(status_code=400, detail=USERNAME_RULE_TEXT)
-
-    if not is_valid_email(email):
-        raise HTTPException(status_code=400, detail=EMAIL_RULE_TEXT)
+    username = payload.username
+    email = payload.email
 
     if get_user_by_email(email):
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -289,12 +283,10 @@ def register_user(payload: RegisterRequest):
     return {"message": "Registration successful"}
 
 
+# Login controller: verifies credentials, upgrades legacy passwords, and starts a session.
 @app.post("/login")
 def login_user(payload: LoginRequest, request: Request):
-    email = payload.email.strip().lower()
-
-    if not is_valid_email(email):
-        raise HTTPException(status_code=400, detail=EMAIL_RULE_TEXT)
+    email = payload.email
 
     user = get_user_by_email(email)
 
@@ -312,6 +304,7 @@ def login_user(payload: LoginRequest, request: Request):
     }
 
 
+# Session controller: returns the currently authenticated user profile.
 @app.get("/me")
 def get_me(request: Request):
     user = get_current_user(request)
@@ -321,6 +314,7 @@ def get_me(request: Request):
     }
 
 
+# Compatibility endpoint for frontend session restore checks.
 @app.get("/session-user")
 def get_session_user(request: Request):
     user = get_current_user(request)
@@ -330,6 +324,7 @@ def get_session_user(request: Request):
     }
 
 
+# Quiz controller for round 1: fetches a banana puzzle, or a fallback if the API fails.
 @app.get("/banana")
 def get_banana_question(request: Request):
     get_current_user(request)
@@ -344,6 +339,7 @@ def get_banana_question(request: Request):
         return BANANA_FALLBACK_QUESTION
 
 
+# Quiz controller for round 2: builds a 4-choice dessert question from API or fallback data.
 @app.get("/dessert-question/random")
 def get_random_dessert_question(request: Request):
     get_current_user(request)
@@ -383,6 +379,7 @@ def get_random_dessert_question(request: Request):
     }
 
 
+# Score controller: saves a completed quiz result for the logged-in user.
 @app.post("/scores")
 def create_score(payload: ScoreRequest, request: Request):
     user = get_current_user(request)
@@ -390,6 +387,7 @@ def create_score(payload: ScoreRequest, request: Request):
     return {"message": "Score saved successfully"}
 
 
+# Score history controller: returns all saved attempts for the current user.
 @app.get("/scores")
 def read_scores(request: Request):
     user = get_current_user(request)
@@ -406,6 +404,7 @@ def read_scores(request: Request):
     ]
 
 
+# Dashboard controller: combines summary statistics and attempt history in one response.
 @app.get("/dashboard")
 def read_dashboard(request: Request):
     user = get_current_user(request)
@@ -436,6 +435,7 @@ def read_dashboard(request: Request):
     }
 
 
+# Result-page controller: fetches a number fact, with fallback text if the service fails.
 @app.get("/number-fact/{number}")
 def get_number_fact(number: int, request: Request):
     get_current_user(request)
@@ -455,6 +455,7 @@ def get_number_fact(number: int, request: Request):
         }
 
 
+# Logout controller: clears the active session cookie-backed state.
 @app.post("/logout")
 def logout_user(request: Request):
     request.session.clear()

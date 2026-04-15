@@ -96,21 +96,20 @@ function Login() {
                 Challenge
               </h1>
               <p className="auth-subtitle auth-subtitle-main">
-                Sign in to enter a sweet little cake world filled with bakery
-                rounds, playful challenges, and a final score screen.
+                Sign in to start the quiz, play both rounds, and view your scores.
               </p>
 
               <ul className="auth-check-list">
-                <li>Unlock the next cake order by clearing each challenge</li>
-                <li>Enjoy bakery-themed rounds with cute image choices</li>
-                <li>Your progress and score stay linked to your player login</li>
+                <li>Play two quiz rounds</li>
+                <li>Save your score history</li>
+                <li>Use your account to continue later</li>
               </ul>
             </div>
 
             <section className="auth-panel auth-panel-inline auth-panel-right">
               <div className="auth-form-card auth-form-card-right">
                 <h2>Log In</h2>
-                <p>Log in to start the Cake Shop Challenge</p>
+                <p>Enter your account details to continue.</p>
 
                 <form className="auth-form" onSubmit={handleLogin}>
                   <div className="auth-field">

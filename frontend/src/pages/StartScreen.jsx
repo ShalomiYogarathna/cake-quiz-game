@@ -26,20 +26,19 @@ function StartScreen() {
       </div>
 
       <main className="start-screen-card">
-        <p className="start-screen-kicker">Sweet Welcome</p>
+        <p className="start-screen-kicker">Welcome</p>
         <h1 className="start-screen-title">
           Cake Shop
           <br />
           Challenge
         </h1>
         <p className="start-screen-subtitle">
-          Step into a playful pink bakery world before you log in, then start
-          your sweet little quiz adventure.
+          Log in or create an account to start the quiz and save your scores.
         </p>
 
         <div className="start-screen-actions">
           <Link to="/login" className="start-screen-button">
-            Start Game
+            Log In
           </Link>
           <Link to="/register" className="start-screen-link">
             Create Account
