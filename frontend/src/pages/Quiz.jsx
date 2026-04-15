@@ -12,6 +12,7 @@ function Quiz() {
     bananaAnswerError,
     dessertQuestion,
     selectedAnswerId,
+    revealedDessertAnswer,
     feedback,
     isLoadingQuestion,
     loadError,
@@ -32,19 +33,19 @@ function Quiz() {
     loadCurrentRound,
     handleBananaSubmit,
     handleDessertAnswerClick,
+    handleCloseDessertReveal,
     handleNextRound,
     handleStartChallenge,
     handleLogout,
   } = useQuiz();
   const [activeDessertIndex, setActiveDessertIndex] = useState(0);
+  const dessertAnswers = dessertQuestion?.answers ?? [];
+  const activeDessertAnswer =
+    dessertAnswers.length > 0 ? dessertAnswers[activeDessertIndex] : null;
 
   useEffect(() => {
     setActiveDessertIndex(0);
   }, [dessertQuestion?.question]);
-
-  const dessertAnswers = dessertQuestion?.answers ?? [];
-  const activeDessertAnswer =
-    dessertAnswers.length > 0 ? dessertAnswers[activeDessertIndex] : null;
 
   const handleDessertSlideChange = (direction) => {
     if (dessertAnswers.length <= 1) {
@@ -452,6 +453,36 @@ function Quiz() {
               </button>
             </div>
           </section>
+        ) : null}
+
+        {revealedDessertAnswer ? (
+          <div className="quiz-modal-backdrop-modern" role="presentation">
+            <div
+              className="quiz-modal-modern"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="correct-dessert-title"
+            >
+              <p className="quiz-modal-kicker-modern">Correct answer</p>
+              <h2 id="correct-dessert-title" className="quiz-modal-title-modern">
+                {revealedDessertAnswer.label}
+              </h2>
+              <img
+                className="quiz-modal-image-modern"
+                src={revealedDessertAnswer.image}
+                alt={revealedDessertAnswer.label}
+              />
+              <div className="quiz-actions-modern">
+                <button
+                  type="button"
+                  className="primary-btn-modern"
+                  onClick={handleCloseDessertReveal}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         ) : null}
       </main>
     </div>

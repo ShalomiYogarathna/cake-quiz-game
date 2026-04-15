@@ -1061,6 +1061,54 @@
   text-align: center;
 }
 
+.quiz-modal-backdrop-modern {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(103, 47, 73, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+.quiz-modal-modern {
+  width: min(100%, 460px);
+  padding: 24px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 252, 253, 0.98), rgba(255, 241, 247, 0.98));
+  border: 1px solid rgba(233, 186, 207, 0.82);
+  box-shadow: 0 24px 50px rgba(115, 52, 79, 0.22);
+  text-align: center;
+}
+
+.quiz-modal-kicker-modern {
+  margin: 0 0 8px;
+  color: #c15b86;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quiz-modal-title-modern {
+  margin: 0 0 18px;
+  color: #7a3f57;
+  font-family: "Fredoka", "Poppins", sans-serif;
+  font-size: 1.8rem;
+}
+
+.quiz-modal-image-modern {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  margin: 0 auto 20px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 14px 28px rgba(168, 101, 129, 0.16);
+}
+
 @keyframes cakeCardFloat {
   0%,
   100% {

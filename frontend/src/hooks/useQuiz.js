@@ -32,6 +32,7 @@ function useQuiz() {
   const [bananaAnswerTouched, setBananaAnswerTouched] = useState(false);
   const [dessertQuestion, setDessertQuestion] = useState(null);
   const [selectedAnswerId, setSelectedAnswerId] = useState(null);
+  const [revealedDessertAnswer, setRevealedDessertAnswer] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -52,6 +53,7 @@ function useQuiz() {
     setLoadError("");
     setFeedback("");
     setSelectedAnswerId(null);
+    setRevealedDessertAnswer(null);
     setTimeRemainingMs(ROUND_TIME_LIMIT_MS);
 
     try {
@@ -193,21 +195,31 @@ function useQuiz() {
 
   const handleDessertAnswerClick = useCallback(
     (answer) => {
-      if (selectedAnswerId !== null || isRoundResolved || timeRemainingMs <= 0) {
+      if (!dessertQuestion || selectedAnswerId !== null || isRoundResolved || timeRemainingMs <= 0) {
         return;
       }
 
-      setSelectedAnswerId(answer.id);
-
       if (answer.correct) {
+        setSelectedAnswerId(answer.id);
         setScore((prevScore) => prevScore + 1);
+        setRevealedDessertAnswer(null);
         setFeedback("Correct answer!");
       } else {
-        setFeedback("Wrong answer!");
+        const correctAnswer = dessertQuestion.answers.find(
+          (dessertAnswer) => dessertAnswer.correct
+        );
+
+        setSelectedAnswerId(answer.id);
+        setRevealedDessertAnswer(correctAnswer ?? null);
+        setFeedback("Wrong answer.");
       }
     },
-    [isRoundResolved, selectedAnswerId, timeRemainingMs]
+    [dessertQuestion, isRoundResolved, selectedAnswerId, timeRemainingMs]
   );
+
+  const handleCloseDessertReveal = useCallback(() => {
+    setRevealedDessertAnswer(null);
+  }, []);
 
   const handleNextRound = useCallback(() => {
     if (isBananaRound) {
@@ -238,6 +250,7 @@ function useQuiz() {
     setRoundNumber(1);
     setFeedback("");
     setLoadError("");
+    setRevealedDessertAnswer(null);
     setTimeRemainingMs(ROUND_TIME_LIMIT_MS);
   }, []);
 
@@ -280,6 +293,7 @@ function useQuiz() {
     bananaAnswerError: liveBananaError,
     dessertQuestion,
     selectedAnswerId,
+    revealedDessertAnswer,
     feedback,
     isLoadingQuestion,
     loadError,
@@ -300,6 +314,7 @@ function useQuiz() {
     loadCurrentRound,
     handleBananaSubmit,
     handleDessertAnswerClick,
+    handleCloseDessertReveal,
     handleNextRound,
     handleStartChallenge,
     handleLogout,
