@@ -24,11 +24,10 @@ function Dashboard() {
 
       <main className="dashboard-stage">
         <section className="dashboard-hero-card">
-          <p className="dashboard-kicker">Sweet Progress Center</p>
+          <p className="dashboard-kicker">Dashboard</p>
           <h1 className="dashboard-title">Welcome back, {username}</h1>
           <p className="dashboard-subtitle">
-            Track your cake challenge history, see your best scores, and jump back
-            into a new round anytime.
+            Check your saved scores and start a new quiz round whenever you want.
           </p>
 
           <div className="dashboard-hero-actions">
@@ -54,7 +53,7 @@ function Dashboard() {
         </section>
 
         {error ? <p className="dashboard-error">{error}</p> : null}
-        {isLoading ? <p className="dashboard-empty">Loading your bakery stats...</p> : null}
+        {isLoading ? <p className="dashboard-empty">Loading your scores...</p> : null}
 
         <section className="dashboard-stats-grid">
           <article className="dashboard-stat-card">
@@ -81,7 +80,7 @@ function Dashboard() {
           <article className="dashboard-panel">
             <div className="dashboard-panel-head">
               <h2>Recent Performance</h2>
-              <p>Your latest attempts in the cake shop challenge.</p>
+              <p>Your most recent quiz attempts.</p>
             </div>
 
             {history.length > 0 ? (
@@ -97,14 +96,14 @@ function Dashboard() {
                       </p>
                     </div>
                     <span className="dashboard-history-badge">
-                      {entry.score === entry.total_questions ? "Perfect" : "Sweet Try"}
+                      {entry.score === entry.total_questions ? "Perfect" : "Completed"}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="dashboard-empty">
-                No quiz history yet. Play your first challenge to fill this board.
+                No quiz history yet. Play one round to see results here.
               </p>
             )}
           </article>
@@ -112,7 +111,7 @@ function Dashboard() {
           <article className="dashboard-panel">
             <div className="dashboard-panel-head">
               <h2>Score History</h2>
-              <p>Every saved result is stored here for this player.</p>
+              <p>All saved results for this account.</p>
             </div>
 
             {history.length > 0 ? (

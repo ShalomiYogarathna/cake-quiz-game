@@ -29,7 +29,19 @@ function Result() {
 
       <div className="result-stage">
         <div className="result-topper">
-          <div className="result-topper-cake" />
+          <div className="result-topper-cake" aria-hidden="true">
+            <span className="result-topper-cake-shadow" />
+            <span className="result-topper-cake-plate" />
+            <span className="result-topper-cake-bottom" />
+            <span className="result-topper-cake-middle" />
+            <span className="result-topper-cake-top" />
+            <span className="result-topper-cake-drip result-topper-cake-drip-a" />
+            <span className="result-topper-cake-drip result-topper-cake-drip-b" />
+            <span className="result-topper-cake-drip result-topper-cake-drip-c" />
+            <span className="result-topper-cake-berry" />
+            <span className="result-topper-cake-leaf result-topper-cake-leaf-left" />
+            <span className="result-topper-cake-leaf result-topper-cake-leaf-right" />
+          </div>
           <div className="result-topper-banner">
             <span className="result-topper-ribbon result-topper-ribbon-left" />
             <div className="result-topper-label">SWEET RESULT</div>
@@ -38,11 +50,9 @@ function Result() {
         </div>
 
         <div className="result-card">
-          <p className="result-kicker">🎉 Challenge Complete</p>
+          <p className="result-kicker">Quiz Complete</p>
           <h1 className="result-title">Quiz Result</h1>
-          <p className="result-subtitle">
-            {username}, your cake shop challenge is complete.
-          </p>
+          <p className="result-subtitle">{username}, here is your final score.</p>
 
           <div className="result-score-bubble">
             <span className="result-score-label">Final Score</span>
@@ -52,14 +62,13 @@ function Result() {
           </div>
 
           <div className="result-message-card">
-            <p className="result-message-title">Sweet work, baker!</p>
+            <p className="result-message-title">Nice work.</p>
             <p className="result-message-text">
-              You finished the challenge and your score will appear in your player
-              dashboard.
+              Your score is saved and can be viewed on the dashboard.
             </p>
             {saveMessage ? <p className="result-message-fact">🍬 {saveMessage}</p> : null}
             {numberFact ? (
-              <p className="result-message-fact">🍬 Sweet number fact: {numberFact}</p>
+              <p className="result-message-fact">🍬 Number fact: {numberFact}</p>
             ) : null}
             {factError ? <p className="result-message-fact">🍬 {factError}</p> : null}
             {factError ? (

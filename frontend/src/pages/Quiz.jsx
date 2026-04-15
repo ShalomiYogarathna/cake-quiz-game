@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import useQuiz from "../hooks/useQuiz";
 import "./Quiz.css";
 
@@ -35,6 +36,35 @@ function Quiz() {
     handleStartChallenge,
     handleLogout,
   } = useQuiz();
+  const [activeDessertIndex, setActiveDessertIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveDessertIndex(0);
+  }, [dessertQuestion?.question]);
+
+  const dessertAnswers = dessertQuestion?.answers ?? [];
+  const activeDessertAnswer =
+    dessertAnswers.length > 0 ? dessertAnswers[activeDessertIndex] : null;
+
+  const handleDessertSlideChange = (direction) => {
+    if (dessertAnswers.length <= 1) {
+      return;
+    }
+
+    setActiveDessertIndex((currentIndex) => {
+      const nextIndex = currentIndex + direction;
+
+      if (nextIndex < 0) {
+        return dessertAnswers.length - 1;
+      }
+
+      if (nextIndex >= dessertAnswers.length) {
+        return 0;
+      }
+
+      return nextIndex;
+    });
+  };
 
   if (!hasStarted) {
     return (
@@ -78,8 +108,7 @@ function Quiz() {
                 Sweet Challenge
               </h1>
               <p className="quiz-start-subtitle">
-                Jump into a candy-colored bakery race with floating treats, fast rounds,
-                and a countdown that keeps the energy high.
+                This quiz has two rounds. Answer before the timer runs out.
               </p>
 
               <div className="quiz-start-feature-row" aria-hidden="true">
@@ -103,7 +132,7 @@ function Quiz() {
                 </div>
                 <div className="quiz-start-howto-row">
                   <span className="quiz-start-howto-label">Round 2</span>
-                  <p>Pick the correct dessert image before the countdown hits zero.</p>
+                  <p>Pick the correct dessert image before time runs out.</p>
                 </div>
               </div>
 
@@ -116,7 +145,7 @@ function Quiz() {
                 <span className="quiz-start-link-icon" aria-hidden="true">
                   🍒
                 </span>
-                <span>{isLoggingOut ? "Leaving the bakery..." : "Log Out"}</span>
+                <span>{isLoggingOut ? "Logging Out..." : "Log Out"}</span>
               </button>
             </div>
           </div>
@@ -221,14 +250,14 @@ function Quiz() {
 
         {isLoadingQuestion ? (
           <div className="quiz-status-card-modern" aria-live="polite">
-            <p className="quiz-feedback-modern">Loading your next bakery challenge...</p>
+            <p className="quiz-feedback-modern">Loading the next question...</p>
           </div>
         ) : null}
 
         {!isLoadingQuestion && !loadError && isBananaRound && bananaQuestion ? (
           <section className="quiz-feature-modern">
             <p className="quiz-subtitle-modern">
-              Count the missing bananas before the countdown finishes.
+              Solve the banana puzzle before the timer ends.
             </p>
 
             <div className="banana-layout-modern">
@@ -282,7 +311,7 @@ function Quiz() {
                     }`}
                     aria-live="polite"
                   >
-                    {bananaAnswerError || "Live validation is on. Whole numbers only."}
+                    {bananaAnswerError || "Enter a whole number."}
                   </p>
 
                   {feedback ? (
@@ -319,26 +348,88 @@ function Quiz() {
           <section className="quiz-feature-modern">
             <p className="quiz-subtitle-modern">{dessertQuestion.question}</p>
 
-            <div className="cake-grid-modern">
-              {dessertQuestion.answers.map((answer) => (
-                <button
-                  key={answer.id}
-                  type="button"
-                  className={`cake-option-modern${
-                    selectedAnswerId === answer.id ? " cake-option-selected-modern" : ""
-                  }`}
-                  onClick={() => handleDessertAnswerClick(answer)}
-                  disabled={selectedAnswerId !== null || isRoundResolved}
+            <div className="cake-carousel-modern">
+              <button
+                type="button"
+                className="cake-carousel-nav-modern"
+                onClick={() => handleDessertSlideChange(-1)}
+                disabled={selectedAnswerId !== null || isRoundResolved || dessertAnswers.length <= 1}
+                aria-label="Show previous dessert"
+              >
+                ‹
+              </button>
+
+              <div className="cake-carousel-window-modern">
+                <div
+                  className="cake-carousel-track-modern"
+                  style={{ transform: `translateX(-${activeDessertIndex * 100}%)` }}
                 >
-                  <img
-                    className="cake-option-image-modern"
-                    src={answer.image}
-                    alt={answer.label}
-                  />
-                  <span className="cake-option-label-modern">{answer.label}</span>
-                </button>
-              ))}
+                  {dessertAnswers.map((answer, index) => (
+                    <div className="cake-carousel-slide-modern" key={answer.id}>
+                      <button
+                        type="button"
+                        className={`cake-option-modern${
+                          selectedAnswerId === answer.id ? " cake-option-selected-modern" : ""
+                        }${index === activeDessertIndex ? " cake-option-active-modern" : ""}`}
+                        style={{ "--cake-float-delay": `${index * 0.18}s` }}
+                        onClick={() => handleDessertAnswerClick(answer)}
+                        disabled={selectedAnswerId !== null || isRoundResolved}
+                        aria-label={`Select ${answer.label}`}
+                      >
+                        <img
+                          className="cake-option-image-modern"
+                          src={answer.image}
+                          alt={answer.label}
+                        />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="cake-carousel-nav-modern"
+                onClick={() => handleDessertSlideChange(1)}
+                disabled={selectedAnswerId !== null || isRoundResolved || dessertAnswers.length <= 1}
+                aria-label="Show next dessert"
+              >
+                ›
+              </button>
             </div>
+
+            <div className="cake-carousel-footer-modern">
+              <div className="cake-carousel-dots-modern" aria-label="Dessert slides">
+                {dessertAnswers.map((answer, index) => (
+                  <button
+                    key={answer.id}
+                    type="button"
+                    className={`cake-carousel-dot-modern${
+                      index === activeDessertIndex ? " cake-carousel-dot-active-modern" : ""
+                    }`}
+                    onClick={() => setActiveDessertIndex(index)}
+                    disabled={selectedAnswerId !== null || isRoundResolved}
+                    aria-label={`Show dessert option ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {selectedAnswerId === null && !isRoundResolved && activeDessertAnswer ? (
+              <div className="quiz-actions-modern cake-select-action-modern">
+                <button
+                  type="button"
+                  className="primary-btn-modern"
+                  onClick={() => handleDessertAnswerClick(activeDessertAnswer)}
+                >
+                  Select This Cake
+                </button>
+              </div>
+            ) : null}
+
+            <p className="cake-carousel-hint-modern">
+              Browse the images and choose the correct dessert before time runs out.
+            </p>
 
             {feedback ? (
               <p className="quiz-feedback-modern" aria-live="polite">

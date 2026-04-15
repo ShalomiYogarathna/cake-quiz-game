@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import cakeShopHero from "../assets/cake-shop-hero.svg";
 import { apiRequest } from "../services/api";
 import {
   PASSWORD_RULE_TEXT,
@@ -10,9 +11,6 @@ import {
   sanitizeEmail,
   sanitizeUsername,
 } from "../utils/validation";
-
-// Source acknowledgement:
-// The decorative hero image in this page is loaded from Unsplash.
 
 function Register() {
   const [username, setUsername] = useState("");
@@ -68,6 +66,9 @@ function Register() {
       <div className="auth-sparkle auth-sparkle-a" />
       <div className="auth-sparkle auth-sparkle-b" />
       <div className="auth-sparkle auth-sparkle-c" />
+      <div className="auth-orb auth-orb-a" aria-hidden="true" />
+      <div className="auth-orb auth-orb-b" aria-hidden="true" />
+      <div className="auth-orb auth-orb-c" aria-hidden="true" />
       <div className="dessert-corner dessert-left">
         <div className="dessert-cupcake">
           <span className="dessert-cherry" />
@@ -81,14 +82,13 @@ function Register() {
         <div className="auth-top-image-wrap">
           <img
             className="auth-top-image"
-            src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80"
-            alt="Pink cake decoration"
+            src={cakeShopHero}
+            alt="Cake shop illustration"
           />
         </div>
         <div className="auth-banner-wrap">
           <div className="auth-banner-ribbon auth-banner-ribbon-left" />
           <div className="auth-banner">
-            <div className="auth-banner-cake" />
             <span>CAKE SHOP CHALLENGE</span>
           </div>
           <div className="auth-banner-ribbon auth-banner-ribbon-right" />
@@ -97,28 +97,59 @@ function Register() {
         <section className="auth-main-card">
           <div className="auth-content-grid">
             <div className="auth-copy-side">
-              <p className="auth-welcome">Join the</p>
+              <p className="auth-welcome">Join the sweetest arcade</p>
+              <div className="auth-mini-pills" aria-hidden="true">
+                <span>Bakery Theme</span>
+                <span>2 Fast Rounds</span>
+                <span>Score History</span>
+              </div>
               <h1 className="auth-title auth-title-main">
                 Cake Shop
                 <br />
                 Challenge
               </h1>
               <p className="auth-subtitle auth-subtitle-main">
-                Create your sweet player profile, then come back to complete bakery
-                rounds in your own pink cake world.
+                Create an account to play the quiz and store your results.
               </p>
 
+              <div className="auth-highlight-card">
+                <div className="auth-highlight-icon" aria-hidden="true">
+                  🍰
+                </div>
+                <div>
+                  <p className="auth-highlight-title">Build your bakery player card</p>
+                  <p className="auth-highlight-text">
+                    Sign up once and your scores will be stored on your dashboard.
+                  </p>
+                </div>
+              </div>
+
               <ul className="auth-check-list">
-                <li>Create your player profile for the Cake Shop Challenge</li>
-                <li>Move through sweet bakery rounds and playful quiz moments</li>
-                <li>Stay in one connected game flow from sign up to final result</li>
+                <li>Create an account for the quiz</li>
+                <li>Play both rounds after logging in</li>
+                <li>Review your previous scores on the dashboard</li>
               </ul>
+
+              <div className="auth-stats-row" aria-hidden="true">
+                <div className="auth-stat-card">
+                  <strong>2</strong>
+                  <span>Rounds</span>
+                </div>
+                <div className="auth-stat-card">
+                  <strong>Live</strong>
+                  <span>Timer</span>
+                </div>
+                <div className="auth-stat-card">
+                  <strong>Sweet</strong>
+                  <span>Rewards</span>
+                </div>
+              </div>
             </div>
 
             <section className="auth-panel auth-panel-inline auth-panel-right">
               <div className="auth-form-card auth-form-card-right">
                 <h2>Sign Up</h2>
-                <p>Create an account to play the Cake Shop Challenge</p>
+                <p>Create your account to start playing.</p>
 
                 <form className="auth-form" onSubmit={handleRegister}>
                   <div className="auth-field">
