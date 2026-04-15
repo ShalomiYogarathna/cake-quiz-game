@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
@@ -11,17 +11,11 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [emailError, setEmailError] = useState("");
   const location = useLocation();
+  const [error, setError] = useState(location.state?.authMessage || "");
+  const [emailError, setEmailError] = useState("");
   const navigate = useNavigate();
   const { refreshAuth } = useAuth();
-
-  useEffect(() => {
-    if (location.state?.authMessage) {
-      setError(location.state.authMessage);
-    }
-  }, [location.state]);
 
   const handleLogin = async (event) => {
     event.preventDefault();

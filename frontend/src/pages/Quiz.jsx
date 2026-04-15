@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useQuiz from "../hooks/useQuiz";
 import "./Quiz.css";
 
@@ -38,32 +38,47 @@ function Quiz() {
     handleStartChallenge,
     handleLogout,
   } = useQuiz();
-  const [activeDessertIndex, setActiveDessertIndex] = useState(0);
+  const [dessertSlide, setDessertSlide] = useState({
+    question: "",
+    index: 0,
+  });
   const dessertAnswers = dessertQuestion?.answers ?? [];
+  const dessertQuestionText = dessertQuestion?.question ?? "";
+  const activeDessertIndex =
+    dessertSlide.question === dessertQuestionText
+      ? Math.min(dessertSlide.index, Math.max(dessertAnswers.length - 1, 0))
+      : 0;
   const activeDessertAnswer =
     dessertAnswers.length > 0 ? dessertAnswers[activeDessertIndex] : null;
-
-  useEffect(() => {
-    setActiveDessertIndex(0);
-  }, [dessertQuestion?.question]);
 
   const handleDessertSlideChange = (direction) => {
     if (dessertAnswers.length <= 1) {
       return;
     }
 
-    setActiveDessertIndex((currentIndex) => {
+    setDessertSlide((currentSlide) => {
+      const currentIndex =
+        currentSlide.question === dessertQuestionText ? currentSlide.index : 0;
       const nextIndex = currentIndex + direction;
 
       if (nextIndex < 0) {
-        return dessertAnswers.length - 1;
+        return {
+          question: dessertQuestionText,
+          index: dessertAnswers.length - 1,
+        };
       }
 
       if (nextIndex >= dessertAnswers.length) {
-        return 0;
+        return {
+          question: dessertQuestionText,
+          index: 0,
+        };
       }
 
-      return nextIndex;
+      return {
+        question: dessertQuestionText,
+        index: nextIndex,
+      };
     });
   };
 
@@ -408,7 +423,12 @@ function Quiz() {
                     className={`cake-carousel-dot-modern${
                       index === activeDessertIndex ? " cake-carousel-dot-active-modern" : ""
                     }`}
-                    onClick={() => setActiveDessertIndex(index)}
+                    onClick={() =>
+                      setDessertSlide({
+                        question: dessertQuestionText,
+                        index,
+                      })
+                    }
                     disabled={selectedAnswerId !== null || isRoundResolved}
                     aria-label={`Show dessert option ${index + 1}`}
                   />

@@ -188,3 +188,5 @@ code submission.
   was reviewed and integrated into this individual project by the author.
 - Attribution comments are also included in the related source files where these
   services and media are used.
+- A dedicated acknowledgements record is included in:
+  [docs/source-acknowledgements.md](/Users/shalomiyogarathna/cake-quiz-game/docs/source-acknowledgements.md)
